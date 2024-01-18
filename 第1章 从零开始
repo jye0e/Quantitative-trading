@@ -5,8 +5,8 @@ pd.set_option('expand_frame_repr', False)  # True就是可以换行显示。设�
 pd.set_option('display.max_columns', None)  # 显示所有列
 pd.set_option('display.max_rows', None)  # 显示所有行
 pd.set_option('colheader_justify', 'centre')  # 显示居中
-# 设置token
-ts.set_token('你的token')
+# 设置token，tushare官方网址：https://tushare.pro/
+ts.set_token('7d32f9359403bc133952fd7b1f402b07fbbe35c915c378901b56b461')
 # 初始化pro接口
 pro = ts.pro_api()
 #查询当前所有正常上市交易的股票列表
