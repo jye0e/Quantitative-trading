@@ -1,0 +1,97 @@
+import pandas as pd
+import tushare as ts
+ 
+pd.set_option('expand_frame_repr', False)  # True就是可以换行显示。设置成False的时候不允许换行
+pd.set_option('display.max_columns', None)  # 显示所有列
+pd.set_option('display.max_rows', None)  # 显示所有行
+pd.set_option('colheader_justify', 'centre')  # 显示居中
+# 设置token
+ts.set_token('你的token')
+# 初始化pro接口
+pro = ts.pro_api()
+#查询当前所有正常上市交易的股票列表
+data = pro.stock_basic(exchange='', list_status='L', fields='ts_code,symbol,name,area,industry,list_date')
+# data = pro.query('stock_basic', exchange='', list_status='L', fields='ts_code,symbol,name,area,industry,list_date')
+data.sort_values('symbol', inplace=True)
+# 显示行数，列数等：df.info（）
+# 获取行数：len（df）
+# 获取列数：len（df.columns）
+# 获取行数和列数：df.shape
+# 获取元素总数（大小）：df.size
+print(data.info())
+data.head()
+
+# 股票代码
+ts_code="002624.SZ"
+# 开始查询的日期
+start = "20230101"
+# 结束查询的日期
+end = "20230209"
+# # 周线行情
+# df = pro.monthly(ts_code=ts_code, start_date=start, end_date=end)
+# # 月线行情
+# df = pro.weekly(ts_code=ts_code, start_date=start, end_date=end)
+# # 日线行情
+df = pro.daily(ts_code=ts_code, start_date=start, end_date=end)
+# 按trade_date排序
+df.sort_values('trade_date', inplace=True)
+# # 提取002624全部复权因子
+# df = pro.adj_factor(ts_code='002624.SZ', trade_date='')
+# # 提取002624的前复权行情
+# df = ts.pro_bar(ts_code='002624.SZ', adj='qfq', start_date='20190101', end_date='20230209')
+print(df.info())
+df.tail()
+
+#将新的字段命名为diff，代表difference
+#用.diff（）方法来计算每日股价变化情况
+df['diff'] = df['close'].diff()
+#检查一下前5行
+df.head()
+
+#此处会用到numpy，故导入
+import numpy as np
+#创建交易信号字段，命名为Signal
+#如果diff值大于0，则Signal为1，否则为0
+df['signal'] = np.where(df['diff'] > 0, 1, 0)
+#检查是否成功
+df.head()
+
+import matplotlib.pyplot as plt
+import numpy as np
+ 
+# 设置字体 显示汉字
+plt.rcParams["font.sans-serif"] = "SimHei"
+ 
+# 设置画布的尺寸为10*5
+plt.figure(figsize=(10, 5))
+ 
+# 使用折线图绘制出每天的收盘价
+df['close'].plot(linewidth=2, color='k', grid=True)
+ 
+""" 
+    # Matplotlib 散点图
+    # scatter() 方法语法格式如下：
+    # matplotlib.pyplot.scatter(x, y, s=None, c=None, marker=None, cmap=None, norm=None, vmin=None, vmax=None, alpha=None, linewidths=None, *, edgecolors=None, plotnonfinite=False, data=None, **kwargs)
+    # 参数说明：
+    # x，y：长度相同的数组，也就是我们即将绘制散点图的数据点，输入数据。
+    # s：点的大小，默认 20，也可以是个数组，数组每个参数为对应点的大小。
+    # c：点的颜色，默认蓝色 'b'，也可以是个 RGB 或 RGBA 二维行数组。
+    # marker：点的样式，默认小圆圈 'o'。
+    # cmap：Colormap，默认 None，标量或者是一个 colormap 的名字，只有 c 是一个浮点数数组的时才使用。如果没有申明就是 image.cmap。
+    # norm：Normalize，默认 None，数据亮度在 0-1 之间，只有 c 是一个浮点数的数组的时才使用。
+    # vmin，vmax：：亮度设置，在 norm 参数存在时会忽略。
+    # alpha：：透明度设置，0-1 之间，默认 None，即不透明。
+    # linewidths：：标记点的长度。
+    # edgecolors：：颜色或颜色序列，默认为 'face'，可选值有 'face', 'none', None。
+    # plotnonfinite：：布尔值，设置是否使用非限定的 c ( inf, -inf 或 nan) 绘制点。
+    # **kwargs：：其他参数。
+"""
+plt.scatter(
+            df['close'].loc[df.signal == 1].index,
+            df['close'][df.signal == 1],
+            marker='v', s=80, c='g')
+plt.scatter(df['close'].loc[df.signal == 0].index,
+            df['close'][df.signal == 0],
+            marker='^', s=80, c='r')
+# 将图像进行展示
+plt.show()
