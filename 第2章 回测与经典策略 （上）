@@ -1,0 +1,67 @@
+#导入必要的库
+import tushare as ts
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+ 
+pd.set_option('expand_frame_repr', False)  # True就是可以换行显示。设置成False的时候不允许换行
+pd.set_option('display.max_columns', None)  # 显示所有列
+pd.set_option('display.max_rows', None)  # 显示所有行
+pd.set_option('colheader_justify', 'centre')  # 显示居中
+
+ts.set_token('你的token')
+pro = ts.pro_api()
+# 股票代码
+ts_code="002624.SZ"
+start = "20210101"
+end = "20230207"
+# # 日线行情
+zgpa = pro.daily(ts_code=ts_code, start_date=start, end_date=end)
+# 将数据按交易日期排序并设置交易日期为索引
+zgpa.sort_values('trade_date', inplace=True)
+zgpa.set_index('trade_date', inplace=True)
+# 打印数据的头部和尾部各5项
+print(zgpa.head())
+print(zgpa.tail())
+
+# 为了不影响原始数据，建立新的数据表
+# 只保留原始数据中索引“日期”
+zgpa_signal = pd.DataFrame(index = zgpa.index)
+# 将原始数据中“收盘”调整为股票价格
+zgpa_signal['price'] = zgpa['close']
+# 储存股票价格变化
+zgpa_signal['diff'] = zgpa_signal['price'].diff()
+# 空值用0填充
+zgpa_signal = zgpa_signal.fillna(0.0)
+# 上涨或不变为0，下跌为1
+zgpa_signal['signal'] = np.where(zgpa_signal['diff'] >= 0, 0, 1)
+# 5手，500股
+# Series.diif(periods=1)
+# 计算Series中的元素与Series中另一个元素的差值（默认为上一行中的元素）。
+# 参数periods表示元素之间做差间隔
+zgpa_signal['order'] = zgpa_signal['signal'].diff()*500
+#显示数据尾部20条
+zgpa_signal.tail(20)
+
+# 原始资金
+initial_cash = 20000.00
+# 股票价值
+zgpa_signal['stock'] = zgpa_signal['order']*zgpa_signal['price']
+# 两次买卖的订单变化之差就是某一时刻仓位的变化情况
+# 持仓股票的数量变化乘以现价，就是交易产生的现金流
+# 用初始资金减去现金流变化的累加，就是剩余的现金
+zgpa_signal['cash'] = initial_cash - (zgpa_signal['order'].diff()*zgpa_signal['price']).cumsum()
+zgpa_signal['total'] = zgpa_signal['stock'] + zgpa_signal['cash']
+print(zgpa_signal)
+
+# 设置字体 显示汉字
+plt.rcParams["font.sans-serif"] = "SimHei"
+ 
+# 设置画布的尺寸为10*6
+plt.figure(figsize=(10, 6))
+plt.plot(zgpa_signal['total'],label='total')
+plt.plot(zgpa_signal['order'].cumsum()*zgpa_signal['price'], '--', label='stock value')
+plt.legend()
+# plt.grid()
+plt.show()
