@@ -23,6 +23,78 @@
             position: relative;
             background-color: #f8f9fa;
         }
+        
+        /* 科技感3D背景效果 */
+        .tech-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -3;
+            overflow: hidden;
+            perspective: 1000px;
+        }
+        
+        .grid {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 800px;
+            height: 800px;
+            transform: translate(-50%, -50%) rotateX(60deg) rotateZ(45deg);
+            animation: gridRotate 40s infinite linear;
+        }
+        
+        .grid::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+            background-size: 30px 30px;
+            background-position: 0 0;
+        }
+        
+        .particles {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 600px;
+            height: 600px;
+            transform: translate(-50%, -50%);
+        }
+        
+        .particles::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle, rgba(51, 102, 204, 0.3) 2px, transparent 2px);
+            background-size: 40px 40px;
+            animation: particlesMove 25s infinite linear;
+        }
+        
+        @keyframes gridRotate {
+            0% {
+                transform: translate(-50%, -50%) rotateX(60deg) rotateZ(45deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotateX(60deg) rotateZ(405deg);
+            }
+        }
+        
+        @keyframes particlesMove {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 100px 100px;
+            }
+        }
 
         /* 背景层 */
         .background {
@@ -552,6 +624,12 @@
 </head>
 <body>
     <div class="background"></div>
+    
+    <!-- 科技感3D点阵背景 -->
+    <div class="tech-background">
+        <div class="grid"></div>
+        <div class="particles"></div>
+    </div>
     
     <div class="container">
           <!-- 顶部标识 -->
