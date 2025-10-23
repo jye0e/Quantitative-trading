@@ -51,11 +51,17 @@
             position: absolute;
             width: 100%;
             height: 100%;
-            background-image: 
-                linear-gradient(rgba(0, 0, 0, 0.2) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 0, 0, 0.2) 1px, transparent 1px);
-            background-size: 25px 25px;
+            background-size: 100% 100%;
             background-position: 0 0;
+        }
+        
+        /* 为随机格子效果准备的基础样式 */
+        .random-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
         }
         
         .particles {
@@ -627,9 +633,52 @@
     
     <!-- 科技感3D点阵背景 -->
     <div class="tech-background">
-        <div class="grid"></div>
+        <div class="grid">
+            <div class="random-grid" id="randomGrid"></div>
+        </div>
         <div class="particles"></div>
     </div>
+    
+    <script>
+        // 生成随机大小的网格格子
+        function generateRandomGrid() {
+            const gridElement = document.getElementById('randomGrid');
+            const gridWidth = 800; // 与grid元素宽度一致
+            const gridHeight = 800; // 与grid元素高度一致
+            const minCellSize = 20;
+            const maxCellSize = 60;
+            
+            // 清空现有内容
+            gridElement.innerHTML = '';
+            
+            // 生成随机格子
+            const numCells = 30; // 生成的格子数量
+            for (let i = 0; i < numCells; i++) {
+                const cellSize = Math.floor(Math.random() * (maxCellSize - minCellSize + 1)) + minCellSize;
+                const x = Math.floor(Math.random() * (gridWidth - cellSize));
+                const y = Math.floor(Math.random() * (gridHeight - cellSize));
+                const opacity = 0.15 + Math.random() * 0.2; // 随机透明度
+                
+                const cell = document.createElement('div');
+                cell.style.position = 'absolute';
+                cell.style.width = `${cellSize}px`;
+                cell.style.height = `${cellSize}px`;
+                cell.style.left = `${x}px`;
+                cell.style.top = `${y}px`;
+                cell.style.border = `1px solid rgba(0, 0, 0, ${opacity})`;
+                cell.style.borderRadius = '2px';
+                cell.style.transform = 'translateZ(0)'; // 启用GPU加速
+                
+                gridElement.appendChild(cell);
+            }
+        }
+        
+        // 页面加载后生成随机网格
+        window.addEventListener('load', generateRandomGrid);
+        
+        // 定时更新网格（每30秒更新一次，增加动态变化感）
+        setInterval(generateRandomGrid, 30000);
+    </script>
     
     <div class="container">
           <!-- 顶部标识 -->
