@@ -645,15 +645,23 @@
             const gridElement = document.getElementById('randomGrid');
             const gridWidth = 800; // 与grid元素宽度一致
             const gridHeight = 800; // 与grid元素高度一致
-            const minCellSize = 20;
-            const maxCellSize = 60;
+            const minCellSize = 15;
+            const maxCellSize = 50;
             
             // 清空现有内容
             gridElement.innerHTML = '';
             
-            // 生成随机格子
-            const numCells = 30; // 生成的格子数量
-            for (let i = 0; i < numCells; i++) {
+            // 增加生成的格子数量，增强科技感
+            const numCells = 1080; // 从30个增加到80个
+            let generatedCells = 0;
+            
+            // 逐个生成格子，让用户能看到实时生成的过程
+            const interval = setInterval(() => {
+                if (generatedCells >= numCells) {
+                    clearInterval(interval);
+                    return;
+                }
+                
                 const cellSize = Math.floor(Math.random() * (maxCellSize - minCellSize + 1)) + minCellSize;
                 const x = Math.floor(Math.random() * (gridWidth - cellSize));
                 const y = Math.floor(Math.random() * (gridHeight - cellSize));
@@ -665,19 +673,33 @@
                 cell.style.height = `${cellSize}px`;
                 cell.style.left = `${x}px`;
                 cell.style.top = `${y}px`;
-                cell.style.border = `1px solid rgba(0, 0, 0, ${opacity})`;
+                // 加粗网格线并加深颜色
+                cell.style.border = `2px solid rgba(0, 0, 0, ${opacity * 1.5})`;
                 cell.style.borderRadius = '2px';
                 cell.style.transform = 'translateZ(0)'; // 启用GPU加速
                 
+                // 添加出现动画
+                cell.style.opacity = '0';
+                cell.style.transform = `translateZ(0) scale(0.5)`;
+                cell.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                
                 gridElement.appendChild(cell);
-            }
+                
+                // 触发动画
+                setTimeout(() => {
+                    cell.style.opacity = '1';
+                    cell.style.transform = 'translateZ(0) scale(1)';
+                }, 10);
+                
+                generatedCells++;
+            }, 30); // 每50ms生成一个格子，创造连续生成的视觉效果
         }
         
         // 页面加载后生成随机网格
         window.addEventListener('load', generateRandomGrid);
         
-        // 定时更新网格（每30秒更新一次，增加动态变化感）
-        setInterval(generateRandomGrid, 30000);
+        // 加快更新频率，从30秒改为3秒，增强科技感
+        setInterval(generateRandomGrid, 3000);
     </script>
     
     <div class="container">
