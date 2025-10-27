@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>潮汐云 - 用户中心</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            color: #333;
+            min-height: 100vh;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            overflow-y: auto; /* 允许垂直滚动 */
+            position: relative;
+        }
+        
+        /* 隐藏WebKit浏览器滚动条 */
+        ::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+        
+        /* 隐藏Firefox滚动条 */
+        html {
+            scrollbar-width: none;
+        }
+        
+        /* 确保背景动效不会影响内容布局 */
+        .polygon-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* 顶部导航栏 */
+        .nav-bar {
+            background: linear-gradient(135deg, #3366cc, #6699ff);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .nav-back {
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+        .nav-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .nav-more {
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        /* 主内容容器 */
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 账号信息卡片 */
+        .account-card {
+            background: linear-gradient(135deg, #333333, #666666);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .account-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .avatar-container {
+            display: flex;
+            align-items: center;
+        }
+        
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 15px;
+        }
+        
+        .avatar i {
+            color: #666666;
+            font-size: 24px;
+        }
+        
+        .account-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .account-number {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .refresh-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 20px;
+            padding: 8px 15px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        
+        .refresh-btn i {
+            margin-right: 5px;
+            font-size: 12px;
+        }
+        
+        /* 算力豆展示 */
+        .power-beans-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .power-beans-left {
+            display: flex;
+            align-items: center;
+        }
+        
+        .bean-icon {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #ff6b6b, #ffa726);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+        }
+        
+        .bean-icon i {
+            color: white;
+            font-size: 14px;
+        }
+        
+        .bean-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .bean-label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .bean-count {
+            font-size: 16px;
+            font-weight: 700;
+        }
+        
+        .recharge-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ffa726);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 6px 15px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .btn-power-on {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #333333, #1a1a1a);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-power-on:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        }
+        
+        .btn-power-on:active {
+            transform: translateY(0);
+        }
+        
+        .btn-power-on i {
+            margin-right: 8px;
+            font-size: 14px;
+        }
+        
+        /* 状态信息 */
+        .status-section {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-label {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .status-value {
+            font-size: 14px;
+            color: #999;
+        }
+        
+        /* 功能模块 */
+        .feature-section {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        
+        .feature-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 10px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            cursor: pointer;
+        }
+        
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .icon-1 {
+            background: linear-gradient(135deg, #ff9a9e, #fecfef);
+            color: white;
+        }
+        
+        .icon-2 {
+            background: linear-gradient(135deg, #a18cd1, #fbc2eb);
+            color: white;
+        }
+        
+        .icon-3 {
+            background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
+            color: white;
+        }
+        
+        .icon-4 {
+            background: linear-gradient(135deg, #84fab0, #8fd3f4);
+            color: white;
+        }
+        
+        .icon-5 {
+            background: linear-gradient(135deg, #8fd3f4, #84fab0);
+            color: white;
+        }
+        
+        .icon-6 {
+            background: linear-gradient(135deg, #d4fc79, #96e6a1);
+            color: white;
+        }
+        
+        .feature-name {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        /* 设置选项 */
+        .settings-section {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        
+        .setting-label {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .setting-control select {
+            padding: 5px 10px 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            color: #666;
+            background-color: #f8f9fa;
+            outline: none;
+            width: 110px; /* 增加宽度以显示完整内容 */
+            /* 自定义下拉箭头样式 */
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="%23666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,9 12,15 18,9"></polyline></svg>');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 12px;
+        }
+        
+        .checkbox-control {
+            display: flex;
+            align-items: center;
+        }
+        
+        .checkbox-control input[type="checkbox"] {
+            margin-right: 5px;
+        }
+        
+        .checkbox-control label {
+            font-size: 14px;
+            color: #999;
+        }
+        
+        /* 底部 */
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            padding: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- 背景动效容器 -->
+    <div class="polygon-background">
+        <canvas class="polygon-canvas" id="polygonCanvas"></canvas>
+    </div>
+    
+
+    
+    <div class="container">
+        <!-- 账号信息卡片 -->
+        <div class="account-card">
+            <div class="account-header">
+                <div class="avatar-container">
+                    <div class="avatar">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='grad1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%234F46E5;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%237C3AED;stop-opacity:1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='100' fill='url(%23grad1)'/%3E%3Ccircle cx='100' cy='80' r='40' fill='white' fill-opacity='0.2'/%3E%3Cpath d='M100 140C66.86 140 40 166.86 40 200H160C160 166.86 133.14 140 100 140Z' fill='white' fill-opacity='0.2'/%3E%3C/svg%3E" alt="用户头像" width="100%" height="100%" style="border-radius:50%;object-fit:cover;">
+                    </div>
+                    <div class="account-info">
+                        <div class="account-number">137******58</div>
+                        <div style="font-size: 12px; opacity: 0.8;">ID: 87654321</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="refresh-btn">
+                        <i class="fas fa-sync-alt"></i> 刷新
+                    </button>
+                    <button onclick="window.location.href='light-theme.html'" style="
+                        background: rgba(255, 255, 255, 0.1);
+                        border: none;
+                        border-radius: 20px;
+                        padding: 8px 15px;
+                        color: white;
+                        font-size: 14px;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                    ">
+                        <i class="fas fa-sign-out-alt" style="margin-right: 5px; font-size: 12px;"></i> 退出
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 算力豆展示 -->
+            <div class="power-beans-section">
+                <div class="power-beans-left">
+                    <div class="bean-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="bean-info">
+                        <div class="bean-label">算力豆</div>
+                        <div class="bean-count">16659547</div>
+                    </div>
+                </div>
+                <button class="recharge-btn" onclick="openModal('充值')">充值</button>
+            </div>
+        </div>
+        
+        <!-- 状态信息 -->
+        <div class="status-section">
+            <div class="status-item">
+                <span class="status-label">包月卡</span>
+                <span class="status-value" style="color: #1677ff; font-weight: 600;">520 张</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">包时卡</span>
+                <span class="status-value">无有效包时卡</span>
+            </div>
+        </div>
+        
+        <!-- 功能模块 -->
+        <div class="feature-section">
+            <div class="section-title">功能服务</div>
+            <div class="feature-grid">
+                <div class="feature-item" onclick="openModal('算力机中心')">
+                    <div class="feature-icon icon-1">
+                        <i class="fas fa-microchip"></i>
+                    </div>
+                    <div class="feature-name">算力机中心</div>
+                </div>
+                <div class="feature-item" onclick="openModal('存储配置')">
+                    <div class="feature-icon icon-2">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <div class="feature-name">存储配置</div>
+                </div>
+                <div class="feature-item" onclick="openModal('兑换券')">
+                    <div class="feature-icon icon-3">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                    <div class="feature-name">兑换券</div>
+                </div>
+                <div class="feature-item" onclick="openModal('我的订单')">
+                    <div class="feature-icon icon-4">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <div class="feature-name">我的订单</div>
+                </div>
+                <div class="feature-item" onclick="openModal('邀请码')">
+                    <div class="feature-icon icon-5">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <div class="feature-name">邀请码</div>
+                </div>
+                <div class="feature-item" onclick="openModal('提瓦特大陆')">
+                    <div class="feature-icon icon-6">
+                        <i class="fas fa-globe-asia"></i>
+                    </div>
+                    <div class="feature-name">提瓦特大陆</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 设置选项 -->
+        <div class="settings-section">
+            <div class="section-title">设置</div>
+            <div class="setting-item">
+                <div class="setting-label">码率:</div>
+                <div class="setting-control">
+                    <select id="bitrate">
+                        <option value="30" selected>30 Mbps</option>
+                        <option value="60">60 Mbps</option>
+                        <option value="90">90 Mbps</option>
+                    </select>
+                </div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">刷新率:</div>
+                <div class="setting-control">
+                    <select id="refresh-rate">
+                        <option value="30">30 Hz</option>
+                        <option value="60" selected>60 Hz</option>
+                        <option value="120">120 Hz</option>
+                    </select>
+                </div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label">服务器:</div>
+                <div class="setting-control">
+                    <select id="server">
+                        <option value="chengdu" selected>成都 36ms</option>
+                        <option value="lanzhou">兰州 48ms</option>
+                        <option value="zigong">自贡 52ms</option>
+                    </select>
+                </div>
+            </div>
+            <div class="setting-item">
+                <div class="setting-label"></div>
+                <div class="checkbox-control">
+                    <input type="checkbox" id="wifi-toggle" checked>
+                    <label for="wifi-toggle">WiFi用户卡顿关闭动态刷新</label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 开机按钮 -->
+        <div style="margin: 25px 0;">
+            <button class="btn-power-on" id="powerButton">
+                    <i class="fas fa-power-off" id="powerIcon"></i> <span id="powerText">开机</span>
+                </button>
+        </div>
+        
+        <!-- 底部 -->
+        <div class="footer">
+            <p>元熙映阙&极元枢版权所有 © 2025</p>
+        </div>
+    </div>
+    
+    <!-- 引入背景动效脚本 -->
+    <script src="polygon-background.js"></script>
+    <script>
+        // 创建开机粒子效果
+        function createBootParticles() {
+            const particlesContainer = document.createElement('div');
+            particlesContainer.className = 'boot-particles';
+            
+            // 创建50个随机粒子
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'boot-particle';
+                
+                // 随机属性
+                const size = Math.random() * 3 + 1;
+                const duration = Math.random() * 10 + 5;
+                const opacity = Math.random() * 0.5 + 0.1;
+                const startX = Math.random() * 100 - 50;
+                const endX = Math.random() * 100 - 50;
+                
+                // 设置CSS变量
+                particle.style.setProperty('--size', size);
+                particle.style.setProperty('--opacity', opacity);
+                particle.style.setProperty('--start-x', startX + 'px');
+                particle.style.setProperty('--end-x', endX + 'px');
+                
+                // 设置样式
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = duration + 's';
+                particle.style.animationDelay = Math.random() * 5 + 's';
+                
+                particlesContainer.appendChild(particle);
+            }
+            
+            return particlesContainer;
+        }
+        
+        // 开机/下机按钮切换功能
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('powerButton').addEventListener('click', function() {
+                const powerText = document.getElementById('powerText');
+                const powerIcon = document.getElementById('powerIcon');
+                const powerButton = document.getElementById('powerButton');
+                
+                // 如果当前是开机状态，显示炫酷开机动画
+                if (powerText.textContent === '开机' && !powerButton.disabled) {
+                    // 禁用按钮
+                    powerButton.disabled = true;
+                    
+                    // 创建开机动画元素
+                    const bootAnimation = document.createElement('div');
+                    bootAnimation.className = 'boot-animation-overlay';
+                    
+                    // 设置动画内容
+                    bootAnimation.innerHTML = `
+                        <div class="boot-logo">潮汐云</div>
+                        <div class="boot-status" id="bootStatus">正在初始化系统...</div>
+                        <div class="boot-progress-container">
+                            <div class="boot-progress-bar"></div>
+                        </div>
+                    `;
+                    
+                    // 添加粒子效果
+                    bootAnimation.appendChild(createBootParticles());
+                    
+                    // 添加到页面
+                    document.body.appendChild(bootAnimation);
+                    
+                    // 模拟系统初始化过程
+                    const statusTexts = [
+                        '正在初始化系统...',
+                        '加载核心模块...',
+                        '连接服务器...',
+                        '配置运行环境...',
+                        '系统准备就绪！'
+                    ];
+                    
+                    // 定期更新状态文本
+                    let statusIndex = 0;
+                    const statusInterval = setInterval(() => {
+                        statusIndex++;
+                        if (statusIndex < statusTexts.length) {
+                            document.getElementById('bootStatus').textContent = statusTexts[statusIndex];
+                        } else {
+                            clearInterval(statusInterval);
+                        }
+                    }, 800);
+                    
+                    // 动画完成后移除并更新按钮状态
+                    setTimeout(function() {
+                        // 淡出动画
+                        bootAnimation.style.opacity = '0';
+                        
+                        // 移除动画元素
+                        setTimeout(() => {
+                            document.body.removeChild(bootAnimation);
+                            
+                            // 更新按钮状态
+                            powerText.textContent = '下机';
+                            powerIcon.className = 'fas fa-sign-out-alt';
+                            powerButton.disabled = false;
+                        }, 500);
+                    }, 4500);
+                } else if (powerText.textContent === '下机') {
+                    // 下机时使用按钮上的加载动画
+                    powerButton.disabled = true;
+                    powerIcon.style.display = 'none';
+                    powerText.innerHTML = '<div class="loading-spinner"></div><span class="loading-text">下机中</span><span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>';
+                    
+                    // 模拟2秒的下机过程
+                    setTimeout(function() {
+                        powerText.textContent = '开机';
+                        powerIcon.style.display = 'inline';
+                        powerIcon.className = 'fas fa-power-off';
+                        powerButton.disabled = false;
+                    }, 2000);
+                }
+            });
+        });
+    </script>
+    
+    <!-- 加载动画和弹窗样式 -->
+    <style>
+        /* 按钮加载动画样式（用于下机） */
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            display: inline-block;
+        }
+        
+        .loading-dots span {
+            opacity: 0;
+            animation: dots 1.4s infinite;
+            display: inline-block;
+        }
+        
+        .loading-dots span:nth-child(1) { animation-delay: 0s; }
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes dots {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        
+        /* 炫酷开机动画样式 */
+        .boot-animation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #000010 0%, #000033 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+            transition: opacity 0.5s ease;
+        }
+        
+        .boot-logo {
+            font-size: 60px;
+            color: #1677ff;
+            text-shadow: 0 0 30px rgba(22, 119, 255, 0.7);
+            margin-bottom: 30px;
+            opacity: 0;
+            transform: scale(0.8);
+            animation: logoAppear 1.5s ease forwards;
+        }
+        
+        @keyframes logoAppear {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .boot-progress-container {
+            width: 60%;
+            max-width: 400px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 40px;
+        }
+        
+        .boot-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #1677ff, #00b4ff);
+            border-radius: 2px;
+            width: 0%;
+            box-shadow: 0 0 10px rgba(22, 119, 255, 0.5);
+            animation: progressFill 4s ease-in-out forwards;
+        }
+        
+        @keyframes progressFill {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        
+        .boot-status {
+            color: #99ccff;
+            font-size: 16px;
+            margin-top: 20px;
+            opacity: 0;
+            animation: statusAppear 0.5s ease forwards 0.5s;
+        }
+        
+        @keyframes statusAppear {
+            to { opacity: 1; }
+        }
+        
+        .boot-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .boot-particle {
+            position: absolute;
+            background: rgba(22, 119, 255, 0.3);
+            border-radius: 50%;
+            animation: float linear infinite;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(var(--start-x)) scale(var(--size));
+                opacity: 0;
+            }
+            10% {
+                opacity: var(--opacity);
+            }
+            90% {
+                opacity: var(--opacity);
+            }
+            100% {
+                transform: translateY(-100vh) translateX(var(--end-x)) scale(var(--size));
+                opacity: 0;
+            }
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            width: 90%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #999;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .close-modal:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .modal-content {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .coupon-input-group {
+            margin: 20px 0;
+        }
+        
+        .coupon-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        .coupon-btn {
+            width: 100%;
+            padding: 12px;
+            background: #1677ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .coupon-btn:hover {
+            background: #0958d9;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 10px;
+            color: #f0f0f0;
+        }
+    </style>
+    
+    <!-- 弹窗HTML结构 -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+        <div class="modal" id="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle"></h3>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-content" id="modalContent">
+                <!-- 内容将通过JavaScript动态填充 -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 打开弹窗函数
+        function openModal(title) {
+            const modalOverlay = document.getElementById('modalOverlay');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalContent = document.getElementById('modalContent');
+            
+            modalTitle.textContent = title;
+            modalOverlay.style.display = 'flex';
+            
+            // 根据不同功能显示不同内容
+            if (title === '兑换券') {
+                modalContent.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-ticket-alt"></i>
+                        <p>当前暂无可用兑换券</p>
+                    </div>
+                    <div class="coupon-input-group">
+                        <input type="text" class="coupon-input" placeholder="请输入兑换码">
+                        <button class="coupon-btn">立即兑换</button>
+                    </div>
+                    <p style="font-size: 12px; color: #999; margin-top: 20px;">
+                        提示：兑换码区分大小写，请仔细核对后输入
+                    </p>
+                `;
+            } else if (title === '充值') {
+                modalContent.innerHTML = `
+                    <style>
+                        .amount-options {
+                            display: grid;
+                            grid-template-columns: repeat(3, 1fr);
+                            gap: 10px;
+                            margin-bottom: 20px;
+                        }
+                        .amount-option {
+                            padding: 12px;
+                            border: 2px solid #f0f0f0;
+                            border-radius: 8px;
+                            text-align: center;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                        }
+                        .amount-option:hover,
+                        .amount-option.selected {
+                            border-color: #1677ff;
+                            color: #1677ff;
+                            font-weight: 600;
+                        }
+                        .payment-methods {
+                            margin-bottom: 20px;
+                        }
+                        .payment-method {
+                            display: flex;
+                            align-items: center;
+                            padding: 10px;
+                            border: 1px solid #f0f0f0;
+                            border-radius: 8px;
+                            margin-bottom: 10px;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                        }
+                        .payment-method:hover {
+                            border-color: #ddd;
+                        }
+                        .payment-method.selected {
+                            border-color: #1677ff;
+                            background: rgba(22, 119, 255, 0.05);
+                        }
+                        .payment-method i {
+                            font-size: 20px;
+                            margin-right: 10px;
+                        }
+                        .pay-btn {
+                            width: 100%;
+                            padding: 12px;
+                            background: #1677ff;
+                            color: white;
+                            border: none;
+                            border-radius: 8px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: background 0.3s ease;
+                        }
+                        .pay-btn:hover {
+                            background: #0958d9;
+                        }
+                    </style>
+                    
+                    <h4 style="margin-bottom: 15px; font-size: 16px;">选择充值金额</h4>
+                    <div class="amount-options">
+                        <div class="amount-option" onclick="selectAmount(this)">¥10</div>
+                        <div class="amount-option" onclick="selectAmount(this)">¥30</div>
+                        <div class="amount-option" onclick="selectAmount(this)">¥50</div>
+                        <div class="amount-option" onclick="selectAmount(this)">¥100</div>
+                        <div class="amount-option" onclick="selectAmount(this)">¥300</div>
+                        <div class="amount-option" onclick="selectAmount(this)">¥500</div>
+                    </div>
+                    
+                    <h4 style="margin-bottom: 15px; font-size: 16px;">选择支付方式</h4>
+                    <div class="payment-methods">
+                        <div class="payment-method" onclick="selectPaymentMethod(this)">
+                            <i class="fab fa-alipay" style="color: #1677ff;"></i>
+                            <span>支付宝</span>
+                        </div>
+                        <div class="payment-method" onclick="selectPaymentMethod(this)">
+                            <i class="fab fa-weixin" style="color: #07C160;"></i>
+                            <span>微信支付</span>
+                        </div>
+                        <div class="payment-method" onclick="selectPaymentMethod(this)">
+                            <i class="fas fa-credit-card" style="color: #666;"></i>
+                            <span>银行卡</span>
+                        </div>
+                    </div>
+                    
+                    <button class="pay-btn">确认支付</button>
+                `;
+            } else {
+                modalContent.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-tools"></i>
+                        <p>功能尚未开放，请耐心等待</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // 关闭弹窗函数
+        function closeModal() {
+            const modalOverlay = document.getElementById('modalOverlay');
+            modalOverlay.style.display = 'none';
+        }
+        
+        // ESC键关闭弹窗
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+        
+        // 选择充值金额
+        function selectAmount(element) {
+            const options = document.querySelectorAll('.amount-option');
+            options.forEach(option => option.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+        
+        // 选择支付方式
+        function selectPaymentMethod(element) {
+            const methods = document.querySelectorAll('.payment-method');
+            methods.forEach(method => method.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+    </script>
+</body>
+</html>

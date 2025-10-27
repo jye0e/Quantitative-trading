@@ -18,175 +18,47 @@
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
-            overflow: hidden;
             position: relative;
             background-color: #f8f9fa;
-        }
-        
-        /* 科技感3D背景效果 */
-        .tech-background {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -3;
-            overflow: hidden;
-            perspective: 1000px;
-        }
-        
-        .grid {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 800px;
-            height: 800px;
-            transform: translate(-50%, -50%) rotateX(60deg) rotateZ(45deg);
-            animation: gridRotate 40s infinite linear;
-        }
-        
-        .grid::before {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background-size: 100% 100%;
-            background-position: 0 0;
-        }
-        
-        /* 为随机格子效果准备的基础样式 */
-        .random-grid {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-        
-        .particles {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 600px;
-            height: 600px;
-            transform: translate(-50%, -50%);
-        }
-        
-        .particles::before {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                radial-gradient(circle, rgba(51, 102, 204, 0.5) 2px, transparent 2px);
-            background-size: 35px 35px;
-            animation: particlesMove 25s infinite linear;
-        }
-        
-        @keyframes gridRotate {
-            0% {
-                transform: translate(-50%, -50%) rotateX(60deg) rotateZ(45deg);
-            }
-            100% {
-                transform: translate(-50%, -50%) rotateX(60deg) rotateZ(405deg);
-            }
-        }
-        
-        @keyframes particlesMove {
-            0% {
-                background-position: 0 0;
-            }
-            100% {
-                background-position: 100px 100px;
-            }
-        }
-
-        /* 背景层 */
-        .background {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 800px;
-            height: 800px;
-            transform: translate(-50%, -50%);
-            border-radius: 50%;
-            overflow: hidden;
-            background: linear-gradient(135deg, rgba(230, 230, 230, 0.9), rgba(245, 245, 245, 1));
-            filter: blur(5px) brightness(1.2);
-            z-index: -2;
-            animation: backgroundMove 30s infinite linear;
-        }
-
-        .background::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), rgba(230, 230, 230, 0.95));
-            z-index: -1;
-        }
-
-        /* 主体容器 */
-        .container {
-            width: 800px;
-            height: 800px;
-            padding: 60px 60px 80px;
-            /* 增加内边距，创造更多留白空间 */
-            background: linear-gradient(135deg, rgba(230, 230, 230, 1), rgba(250, 250, 250, 1));
-            backdrop-filter: blur(10px);
-            border-radius: 50%;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 
-                        0 0 0 1px rgba(0, 0, 0, 0.05),
-                        inset 0 0 20px rgba(255, 255, 255, 0.5);
-            position: relative;
-            overflow-y: hidden;
+            margin: 0;
+            padding: 0;
             overflow-x: hidden;
-            transition: all 0.4s ease;
+            overflow-y: auto;
         }
-
-        /* 以下为滚动条相关样式，暂时注释掉 */
-        /*
-        .container::after {
-            content: '';
-            position: absolute;
-            top: 70px;
-            right: 10px;
-            width: 6px;
-            height: 50px;
-            background: rgba(26, 42, 58, 0.1);
-            border-radius: 4px;
-            z-index: 10;
-            pointer-events: none;
-            transition: all 0.3s ease;
+        
+        /* 隐藏WebKit浏览器滚动条 */
+        ::-webkit-scrollbar {
+            width: 0;
+            height: 0;
         }
-
-        .container:hover::after {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .container::-webkit-scrollbar {
-            display: none;
-        }
-
-        .container {
+        
+        /* 隐藏Firefox滚动条 */
+        html {
             scrollbar-width: none;
         }
-        */
-
-        .container::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(0, 0, 0, 0.03) 0%, transparent 70%);
-            animation: twinkle 8s infinite linear;
+        
+        /* 确保背景动效不会影响内容布局 */
+        .polygon-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             z-index: -1;
+            pointer-events: none; /* 确保背景不会捕获鼠标事件 */
+        }
+
+        /* 内容样式 */
+        .content {
+            width: 100%;
+            max-width: 450px;
+            padding: 30px;
+            /* background: white; */
+            /* border-radius: 20px; */
+            /* box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); */
+            z-index: 1;
+            position: relative;
+            margin: 0 auto;
         }
 
         /* 主题切换按钮 - 标题右侧 */
@@ -225,25 +97,13 @@
         .title {
             font-size: 28px;
             font-weight: 700;
-            background: linear-gradient(to right, #333333, #1a1a1a, #333333);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+            color: #1a1a1a;
             letter-spacing: 2px;
             margin-bottom: 8px;
-            text-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             height: 40px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .title::after {
-            content: '|';
-            position: absolute;
-            right: 0;
-            color: #333333;
-            animation: blink 1s infinite;
-            margin-left: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .subtitle {
@@ -296,18 +156,12 @@
         }
 
         .form {
-            position: absolute;
             width: 100%;
-            transition: all 0.4s ease;
-            opacity: 0;
-            transform: translateX(30px);
-            pointer-events: none;
+            display: none;
         }
 
         .form.active {
-            opacity: 1;
-            transform: translateX(0);
-            pointer-events: all;
+            display: block;
         }
 
         .input-group {
@@ -446,72 +300,6 @@
             font-size: 14px;
         }
 
-        /* 其他登录方式 */
-        .other-login {
-            margin-top: 25px;
-            text-align: center;
-        }
-
-        .other-login-title {
-            font-size: 14px;
-            color: #a0a0a0;
-            margin-bottom: 15px;
-            position: relative;
-        }
-
-        .other-login-title::before,
-        .other-login-title::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            width: 30%;
-            height: 1px;
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .other-login-title::before {
-            left: 0;
-        }
-
-        .other-login-title::after {
-            right: 0;
-        }
-
-        .elements {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-
-        .element {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(212, 175, 55, 0.2);
-        }
-
-        .element:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
-            border-color: #ffffff;
-        }
-
-        /* 社交平台图标颜色 */
-        .element.wechat { color: #07c160; }
-        .element.qq { color: #12b7f5; }
-        .element.douyin { color: #ff0050; }
-        .element.alipay { color: #1677ff; }
-        .element.weibo { color: #e6162d; }
-
         /* 底部装饰 */
         .footer {
             margin-top: 30px;
@@ -530,38 +318,6 @@
             width: 60%;
             height: 1px;
             background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.1), transparent);
-        }
-
-        /* 动画效果 */
-        @keyframes twinkle {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @keyframes glow {
-            0% { box-shadow: 0 0 5px rgba(0, 0, 0, 0.2); }
-            50% { box-shadow: 0 0 20px rgba(0, 0, 0, 0.4); }
-            100% { box-shadow: 0 0 5px rgba(0, 0, 0, 0.2); }
-        }
-
-        @keyframes backgroundMove {
-            0% { background-position: 0% 0%; }
-            50% { background-position: 100% 100%; }
-            100% { background-position: 0% 0%; }
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-
-        @keyframes typing {
-            from { width: 0; }
-            to { width: 100%; }
-        }
-
-        .glow-effect {
-            animation: glow 2s infinite;
         }
 
         /* 验证码区域 */
@@ -629,84 +385,17 @@
     </style>
 </head>
 <body>
-    <div class="background"></div>
     
-    <!-- 科技感3D点阵背景 -->
-    <div class="tech-background">
-        <div class="grid">
-            <div class="random-grid" id="randomGrid"></div>
-        </div>
-        <div class="particles"></div>
+    <!-- 背景动效容器 -->
+    <div class="polygon-background">
+        <canvas class="polygon-canvas" id="polygonCanvas"></canvas>
     </div>
     
-    <script>
-        // 生成随机大小的网格格子
-        function generateRandomGrid() {
-            const gridElement = document.getElementById('randomGrid');
-            const gridWidth = 800; // 与grid元素宽度一致
-            const gridHeight = 800; // 与grid元素高度一致
-            const minCellSize = 15;
-            const maxCellSize = 50;
-            
-            // 清空现有内容
-            gridElement.innerHTML = '';
-            
-            // 增加生成的格子数量，增强科技感
-            const numCells = 1080; // 从30个增加到80个
-            let generatedCells = 0;
-            
-            // 逐个生成格子，让用户能看到实时生成的过程
-            const interval = setInterval(() => {
-                if (generatedCells >= numCells) {
-                    clearInterval(interval);
-                    return;
-                }
-                
-                const cellSize = Math.floor(Math.random() * (maxCellSize - minCellSize + 1)) + minCellSize;
-                const x = Math.floor(Math.random() * (gridWidth - cellSize));
-                const y = Math.floor(Math.random() * (gridHeight - cellSize));
-                const opacity = 0.15 + Math.random() * 0.2; // 随机透明度
-                
-                const cell = document.createElement('div');
-                cell.style.position = 'absolute';
-                cell.style.width = `${cellSize}px`;
-                cell.style.height = `${cellSize}px`;
-                cell.style.left = `${x}px`;
-                cell.style.top = `${y}px`;
-                // 加粗网格线并加深颜色
-                cell.style.border = `2px solid rgba(0, 0, 0, ${opacity * 1.5})`;
-                cell.style.borderRadius = '2px';
-                cell.style.transform = 'translateZ(0)'; // 启用GPU加速
-                
-                // 添加出现动画
-                cell.style.opacity = '0';
-                cell.style.transform = `translateZ(0) scale(0.5)`;
-                cell.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                
-                gridElement.appendChild(cell);
-                
-                // 触发动画
-                setTimeout(() => {
-                    cell.style.opacity = '1';
-                    cell.style.transform = 'translateZ(0) scale(1)';
-                }, 10);
-                
-                generatedCells++;
-            }, 30); // 每50ms生成一个格子，创造连续生成的视觉效果
-        }
-        
-        // 页面加载后生成随机网格
-        window.addEventListener('load', generateRandomGrid);
-        
-        // 加快更新频率，从30秒改为3秒，增强科技感
-        setInterval(generateRandomGrid, 3000);
-    </script>
-    
-    <div class="container">
+    <div class="content">
           <!-- 顶部标识 -->
            <div class="header">
                <div style="display: flex; justify-content: center; align-items: center;">
-                   <h1 class="title" id="typing-title"></h1>
+                   <h1 class="title">潮汐云</h1>
                    <button class="theme-toggle" onclick="window.location.href='index.html'">🌙</button>
                </div>
                <div class="subtitle">提瓦特大陆冒险家入口</div>
@@ -738,28 +427,14 @@
                         <div class="checkbox checked"></div>
                         <span>记住冒险家身份</span>
                     </div>
-                    <div>
+                    <div style="text-align: right;">
                         <a href="#" class="link">忘记密钥？</a>
-                        <span style="margin: 0 10px 0 5px;">|</span>
-                        <a href="#" class="link">联系提瓦特信使</a>
                     </div>
                 </div>
                 
-                <button type="button" class="btn btn-login">
+                <button type="button" class="btn btn-login" onclick="window.location.href='user-dashboard.html'">
                     <i class="fas fa-feather-alt"></i> 登录潮汐云
                 </button>
-                
-                <!-- 以下为快捷登录区域，暂时注释掉 -->
-                <!-- <div class="other-login">
-                    <div class="other-login-title">通过神之眼快捷登录</div>
-                    <div class="elements">
-                        <div class="element wechat"><i class="fab fa-weixin"></i></div>
-                        <div class="element qq"><i class="fab fa-qq"></i></div>
-                        <div class="element douyin"><i class="fab fa-tiktok"></i></div>
-                        <div class="element alipay"><i class="fab fa-alipay"></i></div>
-                        <div class="element weibo"><i class="fab fa-weibo"></i></div>
-                    </div>
-                </div> -->
             </form>
             
             <!-- 注册表单 -->
@@ -816,24 +491,9 @@
         </div>
     </div>
 
+    <script src="polygon-background.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 打字机效果
-            const titleText = "潮汐云";
-            const titleElement = document.getElementById('typing-title');
-            let charIndex = 0;
-            
-            function typeWriter() {
-                if (charIndex < titleText.length) {
-                    titleElement.innerHTML += titleText.charAt(charIndex);
-                    charIndex++;
-                    setTimeout(typeWriter, 150);
-                }
-            }
-            
-            // 延迟开始打字效果
-            setTimeout(typeWriter, 500);
-            
             // 切换登录/注册
             const loginTab = document.getElementById('login-tab');
             const registerTab = document.getElementById('register-tab');
@@ -905,34 +565,6 @@
                         }
                     }, 1000);
                 }
-            });
-            
-            // 按钮点击效果
-            const buttons = document.querySelectorAll('.btn');
-            buttons.forEach(button => {
-                button.addEventListener('mousedown', function() {
-                    this.style.transform = 'scale(0.95)';
-                });
-                
-                button.addEventListener('mouseup', function() {
-                    this.style.transform = 'scale(1)';
-                });
-                
-                button.addEventListener('mouseleave', function() {
-                    this.style.transform = 'scale(1)';
-                });
-            });
-            
-            // 社交图标悬停效果
-            const elements = document.querySelectorAll('.element');
-            elements.forEach(element => {
-                element.addEventListener('mouseenter', function() {
-                    this.classList.add('glow-effect');
-                });
-                
-                element.addEventListener('mouseleave', function() {
-                    this.classList.remove('glow-effect');
-                });
             });
         });
     </script>
