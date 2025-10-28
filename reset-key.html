@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>潮汐云 - 重置秘境密钥</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            color: #1a1a1a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            position: relative;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        
+        /* 隐藏WebKit浏览器滚动条 */
+        ::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+        
+        /* 隐藏Firefox滚动条 */
+        html {
+            scrollbar-width: none;
+        }
+
+        /* 确保背景动效不会影响内容布局 */
+        .polygon-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none; /* 确保背景不会捕获鼠标事件 */
+        }
+
+        /* 内容样式 */
+        .content {
+            width: 100%;
+            max-width: 450px;
+            padding: 30px;
+            z-index: 1;
+            position: relative;
+            margin: 0 auto;
+        }
+
+        /* 顶部标识 */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a1a;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #666666;
+            margin-top: 5px;
+        }
+
+        /* 表单样式 */
+        .form-container {
+            position: relative;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .form {
+            width: 100%;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666666;
+            font-size: 16px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px 14px 14px 45px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50px;
+            color: #1a1a1a;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            height: 50px;
+            line-height: 50px;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #333333;
+            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-field::placeholder {
+            color: #999999;
+        }
+
+        /* 密码显示/隐藏切换 */
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999999;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .toggle-password:hover {
+            color: #333333;
+        }
+
+        /* 验证码区域 */
+        .verification-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 0; /* 移除下边距 */
+        }
+
+        .verification-input {
+            flex: 1;
+        }
+
+        /* 确保验证码输入框高度为50px */
+        .verification-input .input-field {
+            height: 50px;
+            padding: 0 14px 0 45px;
+            line-height: 50px;
+        }
+
+        .verification-btn {
+            width: 120px;
+            padding: 0 14px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50px;
+            color: #1a1a1a;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .verification-btn:hover:not(.disabled) {
+            border-color: #333333;
+            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .verification-btn.disabled {
+            background: #f0f0f0;
+            border-color: #cccccc;
+            color: #999999;
+            cursor: not-allowed;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            height: 50px;
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #333333, #1a1a1a);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            margin-top: 10px;
+        }
+
+        .btn-back {
+            background: #ffffff;
+            color: #333333;
+            border: 2px solid #333333;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-top: 15px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-back:hover {
+            background: #f5f5f5;
+            border-color: #1a1a1a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn i {
+            margin-right: 8px;
+            font-size: 14px;
+        }
+
+        /* 底部装饰 */
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #999999;
+            position: relative;
+            padding-top: 15px;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 20%;
+            width: 60%;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.1), transparent);
+        }
+
+        /* 提示信息 */
+        .warning-text {
+            text-align: center;
+            font-size: 13px;
+            color: #ff6b6b;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #fff0f0;
+            border-radius: 8px;
+            border: 1px solid #ffccc7;
+        }
+
+        /* 密钥显示卡片 */
+        .key-display-card {
+            background: linear-gradient(135deg, #333333, #666666);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+        
+        .key-title {
+            font-size: 16px;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+        
+        .key-value {
+            font-size: 20px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            word-break: break-all;
+        }
+        
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        /* 隐藏元素 */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- 背景动效容器 -->
+    <div class="polygon-background">
+        <canvas class="polygon-canvas" id="polygonCanvas"></canvas>
+    </div>
+    
+    <div class="content">
+          <!-- 顶部标识 -->
+           <div class="header">
+               <h1 class="title">潮汐云</h1>
+               <div class="subtitle" id="pageSubtitle">重置秘境密钥</div>
+           </div>
+        
+        <!-- 表单容器 -->
+        <div class="form-container">
+            <form class="form" id="reset-key-form">
+                <div class="warning-text">
+                    <i class="fas fa-exclamation-circle"></i> 重置密钥后，您现有的密钥将失效，请妥善保存新密钥
+                </div>
+                
+                <!-- 未登录状态（忘记密钥）显示的字段 -->
+                <div id="forgot-key-fields">
+                    <div class="input-group">
+                        <i class="input-icon fas fa-envelope"></i>
+                        <input type="email" id="email" class="input-field" placeholder="请输入邮箱地址">
+                    </div>
+                    
+                    <div class="input-group verification-group">
+                        <div class="input-group verification-input">
+                            <i class="input-icon fas fa-scroll"></i>
+                            <input type="text" id="verification-code" class="input-field" placeholder="请输入验证码">
+                        </div>
+                        <button type="button" class="verification-btn" id="verificationBtn">获取验证码</button>
+                    </div>
+                </div>
+                
+                <!-- 已登录状态显示的字段 -->
+                <div id="change-key-fields" class="hidden">
+                    <div class="input-group">
+                        <i class="input-icon fas fa-lock"></i>
+                        <input type="password" id="old-password" class="input-field" placeholder="请输入当前秘境密钥">
+                        <i class="toggle-password fas fa-eye"></i>
+                    </div>
+                </div>
+                
+                <!-- 通用字段 -->
+                <div class="input-group">
+                    <i class="input-icon fas fa-lock"></i>
+                    <input type="password" id="new-password" class="input-field" placeholder="创建新秘境密钥">
+                    <i class="toggle-password fas fa-eye"></i>
+                </div>
+                
+                <div class="input-group">
+                    <i class="input-icon fas fa-lock"></i>
+                    <input type="password" id="confirm-password" class="input-field" placeholder="再次确认新秘境密钥">
+                    <i class="toggle-password fas fa-eye"></i>
+                </div>
+                
+                <button type="button" class="btn btn-reset" onclick="handleResetKey()">
+                    <i class="fas fa-key"></i> 重置秘境密钥
+                </button>
+                
+                <button type="button" class="btn btn-back" onclick="goBack()">
+                    <i class="fas fa-arrow-left"></i> 返回上一页
+                </button>
+            </form>
+            
+            <!-- 新密钥显示卡片 -->
+            <div class="key-display-card" id="keyDisplayCard">
+                <div class="key-title">您的新秘境密钥</div>
+                <div class="key-value" id="newKeyValue">ABCDEF1234567890</div>
+                <button type="button" class="copy-btn" onclick="copyNewKey()">
+                    <i class="fas fa-copy"></i> 复制密钥
+                </button>
+            </div>
+        </div>
+        
+        <!-- 底部装饰 -->
+        <div class="footer">
+            <div>元熙映阙&极元枢版权所有 © 2025</div>
+        </div>
+    </div>
+    
+    <!-- 引入背景动效脚本 -->
+    <script src="polygon-background.js"></script>
+    <script>
+        // 获取URL参数
+        function getQueryParams() {
+            const params = {};
+            const queryString = window.location.search.substring(1);
+            const pairs = queryString.split('&');
+            for (let i = 0; i < pairs.length; i++) {
+                const pair = pairs[i].split('=');
+                if (pair.length === 2) {
+                    params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
+                }
+            }
+            return params;
+        }
+        
+        let isForgotPasswordMode = false; // 默认不是忘记密码模式
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // 解析URL参数
+            const params = getQueryParams();
+            
+            // 根据URL参数决定显示哪个表单
+            if (params.mode === 'forgot') {
+                // 忘记密钥模式（未登录状态）
+                isForgotPasswordMode = true;
+                document.getElementById('forgot-key-fields').classList.remove('hidden');
+                document.getElementById('change-key-fields').classList.add('hidden');
+                document.getElementById('pageSubtitle').textContent = '找回秘境密钥';
+            } else {
+                // 重置密钥模式（已登录状态）
+                isForgotPasswordMode = false;
+                document.getElementById('forgot-key-fields').classList.add('hidden');
+                document.getElementById('change-key-fields').classList.remove('hidden');
+                document.getElementById('pageSubtitle').textContent = '重置秘境密钥';
+            }
+            
+            // 密码显示/隐藏切换
+            const togglePasswordIcons = document.querySelectorAll('.toggle-password');
+            togglePasswordIcons.forEach(icon => {
+                icon.addEventListener('click', function() {
+                    const input = this.parentElement.querySelector('input');
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        this.classList.remove('fa-eye');
+                        this.classList.add('fa-eye-slash');
+                    } else {
+                        input.type = 'password';
+                        this.classList.remove('fa-eye-slash');
+                        this.classList.add('fa-eye');
+                    }
+                });
+            });
+            
+            // 获取验证码按钮
+            const verificationBtn = document.getElementById('verificationBtn');
+            verificationBtn.addEventListener('click', function() {
+                const email = document.getElementById('email').value;
+                
+                if (!email || !isValidEmail(email)) {
+                    alert('请先输入有效的邮箱地址');
+                    return;
+                }
+                
+                if (!this.classList.contains('disabled')) {
+                    // 模拟发送验证码
+                    alert('验证码已发送至您的邮箱：' + email);
+                    
+                    this.classList.add('disabled');
+                    this.textContent = '60秒后重新获取';
+                    
+                    let countdown = 60;
+                    const timer = setInterval(() => {
+                        countdown--;
+                        this.textContent = `${countdown}秒后重新获取`;
+                        
+                        if (countdown <= 0) {
+                            clearInterval(timer);
+                            this.classList.remove('disabled');
+                            this.textContent = '获取验证码';
+                        }
+                    }, 1000);
+                }
+            });
+        });
+        
+        // 返回上一页
+        function goBack() {
+            // 检查是否有历史记录可以返回
+            if (document.referrer) {
+                // 如果有历史记录，返回上一页
+                window.history.back();
+            } else {
+                // 如果没有历史记录，根据当前模式决定返回页面
+                if (isForgotPasswordMode) {
+                    window.location.href = 'light-theme.html';
+                } else {
+                    // 假设已登录状态下是从profile.html过来的
+                    window.location.href = 'profile.html';
+                }
+            }
+        }
+        
+        // 处理重置密钥
+        function handleResetKey() {
+            // 获取表单数据
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            // 根据不同模式进行不同的验证
+            if (isForgotPasswordMode) {
+                // 忘记密钥模式（未登录状态）
+                const email = document.getElementById('email').value;
+                const verificationCode = document.getElementById('verification-code').value;
+                
+                // 表单验证
+                if (!email || !isValidEmail(email)) {
+                    alert('请输入有效的邮箱地址');
+                    return;
+                }
+                
+                if (!verificationCode) {
+                    alert('请输入验证码');
+                    return;
+                }
+            } else {
+                // 重置密钥模式（已登录状态）
+                const oldPassword = document.getElementById('old-password').value;
+                
+                // 表单验证
+                if (!oldPassword) {
+                    alert('请输入当前秘境密钥');
+                    return;
+                }
+            }
+            
+            // 通用验证
+            if (!newPassword || newPassword.length < 6) {
+                alert('新秘境密钥长度至少为6个字符');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                alert('两次输入的新秘境密钥不一致');
+                return;
+            }
+            
+            // 模拟密钥生成
+            setTimeout(() => {
+                // 生成随机密钥
+                const newKey = generateRandomKey();
+                document.getElementById('newKeyValue').textContent = newKey;
+                
+                // 显示新密钥卡片
+                document.getElementById('keyDisplayCard').style.display = 'block';
+                
+                // 滚动到密钥卡片
+                document.getElementById('keyDisplayCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                alert('密钥重置成功，请妥善保存新密钥');
+            }, 1000);
+        }
+        
+        // 生成随机密钥
+        function generateRandomKey() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < 20; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            // 格式化为4位一组
+            return result.match(/.{1,4}/g).join('-');
+        }
+        
+        // 复制新密钥
+        function copyNewKey() {
+            const keyText = document.getElementById('newKeyValue').textContent;
+            
+            // 使用Clipboard API复制文本
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(keyText).then(() => {
+                    alert('密钥已复制到剪贴板');
+                }).catch(() => {
+                    fallbackCopyTextToClipboard(keyText);
+                });
+            } else {
+                fallbackCopyTextToClipboard(keyText);
+            }
+        }
+        
+        // 备用复制方法
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                alert('密钥已复制到剪贴板');
+            } catch (err) {
+                alert('复制失败，请手动复制');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+        
+        // 邮箱验证函数
+        function isValidEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+    </script>
+</body>
+</html>

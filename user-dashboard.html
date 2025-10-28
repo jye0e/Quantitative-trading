@@ -35,6 +35,50 @@
             scrollbar-width: none;
         }
         
+        /* 自定义Element Plus风格消息提示样式 */
+        .element-message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 16px;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            z-index: 9999;
+            animation: message-fade-in 0.3s, message-fade-out 0.3s 2.7s forwards;
+        }
+        .element-message.warning {
+            background-color: #fdf6ec;
+            border-left: 4px solid #e6a23c;
+            color: #e6a23c;
+        }
+        .element-message i {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+        @keyframes message-fade-in {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-100%);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        @keyframes message-fade-out {
+            0% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-10px);
+            }
+        }
+        
         /* 确保背景动效不会影响内容布局 */
         .polygon-background {
             position: fixed;
@@ -46,35 +90,7 @@
             pointer-events: none;
         }
 
-        /* 顶部导航栏 */
-        .nav-bar {
-            background: linear-gradient(135deg, #3366cc, #6699ff);
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-        
-        .nav-back {
-            font-size: 20px;
-            cursor: pointer;
-            padding: 5px;
-        }
-        
-        .nav-title {
-            font-size: 18px;
-            font-weight: 600;
-        }
-        
-        .nav-more {
-            font-size: 20px;
-            cursor: pointer;
-            padding: 5px;
-        }
+        /* 移除导航栏样式 */
 
         /* 主内容容器 */
         .container {
@@ -104,6 +120,11 @@
         .avatar-container {
             display: flex;
             align-items: center;
+            transition: transform 0.2s ease;
+        }
+        
+        .avatar-container:hover {
+            transform: scale(1.02);
         }
         
         .avatar {
@@ -422,13 +443,11 @@
         <canvas class="polygon-canvas" id="polygonCanvas"></canvas>
     </div>
     
-
-    
     <div class="container">
         <!-- 账号信息卡片 -->
         <div class="account-card">
             <div class="account-header">
-                <div class="avatar-container">
+                <div class="avatar-container" onclick="window.location.href='profile.html'" style="cursor: pointer;">
                     <div class="avatar">
                         <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='grad1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%234F46E5;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%237C3AED;stop-opacity:1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='100' fill='url(%23grad1)'/%3E%3Ccircle cx='100' cy='80' r='40' fill='white' fill-opacity='0.2'/%3E%3Cpath d='M100 140C66.86 140 40 166.86 40 200H160C160 166.86 133.14 140 100 140Z' fill='white' fill-opacity='0.2'/%3E%3C/svg%3E" alt="用户头像" width="100%" height="100%" style="border-radius:50%;object-fit:cover;">
                     </div>
@@ -1054,7 +1073,7 @@
                         }
                     </style>
                     
-                    <h4 style="margin-bottom: 15px; font-size: 16px;">选择充值金额</h4>
+                    <div style="margin-bottom: 15px; font-size: 14px; color: #909399; font-weight: 400;">请选择充值金额：</div>
                     <div class="amount-options">
                         <div class="amount-option" onclick="selectAmount(this)">¥10</div>
                         <div class="amount-option" onclick="selectAmount(this)">¥30</div>
@@ -1064,7 +1083,7 @@
                         <div class="amount-option" onclick="selectAmount(this)">¥500</div>
                     </div>
                     
-                    <h4 style="margin-bottom: 15px; font-size: 16px;">选择支付方式</h4>
+                    <div style="margin-bottom: 15px; font-size: 14px; color: #909399; font-weight: 400;">请选择支付方式：</div>
                     <div class="payment-methods">
                         <div class="payment-method" onclick="selectPaymentMethod(this)">
                             <i class="fab fa-alipay" style="color: #1677ff;"></i>
@@ -1080,7 +1099,7 @@
                         </div>
                     </div>
                     
-                    <button class="pay-btn">确认支付</button>
+                    <button class="pay-btn" onclick="confirmPayment()">确认支付</button>
                 `;
             } else {
                 modalContent.innerHTML = `
@@ -1105,6 +1124,44 @@
             }
         });
         
+        // 自定义Element Plus风格消息提示函数
+        function showElementPlusMessage(message, type = 'info') {
+            // 移除可能存在的旧消息
+            const oldMessage = document.querySelector('.element-message');
+            if (oldMessage) {
+                oldMessage.remove();
+            }
+            
+            // 创建新消息元素
+            const messageElement = document.createElement('div');
+            messageElement.className = `element-message ${type}`;
+            
+            // 添加图标和文本
+            let iconClass = 'fa-info-circle';
+            if (type === 'warning') {
+                iconClass = 'fa-exclamation-circle';
+            } else if (type === 'success') {
+                iconClass = 'fa-check-circle';
+            } else if (type === 'error') {
+                iconClass = 'fa-times-circle';
+            }
+            
+            messageElement.innerHTML = `
+                <i class="fas ${iconClass}"></i>
+                <span>${message}</span>
+            `;
+            
+            // 添加到页面
+            document.body.appendChild(messageElement);
+            
+            // 3秒后自动移除
+            setTimeout(() => {
+                if (messageElement.parentNode) {
+                    messageElement.remove();
+                }
+            }, 3000);
+        }
+        
         // 选择充值金额
         function selectAmount(element) {
             const options = document.querySelectorAll('.amount-option');
@@ -1117,6 +1174,160 @@
             const methods = document.querySelectorAll('.payment-method');
             methods.forEach(method => method.classList.remove('selected'));
             element.classList.add('selected');
+        }
+        
+        // 确认支付，切换到二维码界面
+        function confirmPayment() {
+            // 获取选中的金额
+            const selectedAmount = document.querySelector('.amount-option.selected');
+            // 获取选中的支付方式
+            const selectedMethod = document.querySelector('.payment-method.selected');
+            
+            // 验证是否选择了金额和支付方式
+            if (!selectedAmount) {
+                showElementPlusMessage('请选择充值金额', 'warning');
+                return;
+            }
+            if (!selectedMethod) {
+                showElementPlusMessage('请选择支付方式', 'warning');
+                return;
+            }
+            
+            // 获取金额和支付方式信息
+            const amount = selectedAmount.textContent;
+            const methodName = selectedMethod.querySelector('span').textContent;
+            const methodIcon = selectedMethod.querySelector('i').outerHTML;
+            
+            // 更新弹窗标题
+            const modalTitle = document.getElementById('modalTitle');
+            modalTitle.innerHTML = '<i class="fas fa-arrow-left" style="margin-right: 5px; cursor: pointer;" onclick="showPaymentOptions()"></i>' + methodName;
+            
+            // 显示二维码支付界面
+            const modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = `
+                <style>
+                    .qrcode-container {
+                        text-align: center;
+                        padding: 30px 20px;
+                    }
+                    .qrcode-header {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin-bottom: 20px;
+                        font-size: 16px;
+                        color: #333;
+                    }
+                    .qrcode-header i {
+                        margin-right: 8px;
+                        font-size: 20px;
+                    }
+                    .qrcode-title {
+                        margin-bottom: 10px;
+                        font-size: 14px;
+                        color: #666;
+                    }
+                    .qrcode-amount {
+                        font-size: 28px;
+                        font-weight: 700;
+                        margin: 15px 0 25px;
+                        color: #333;
+                    }
+                    .qrcode-image {
+                        width: 240px;
+                        height: 240px;
+                        margin: 0 auto 25px;
+                        padding: 15px;
+                        background: white;
+                        border: 1px solid #e8e8e8;
+                        border-radius: 12px;
+                        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        position: relative;
+                    }
+                    .qrcode-image svg {
+                        border-radius: 4px;
+                    }
+                    .qrcode-note {
+                        font-size: 14px;
+                        color: #999;
+                        margin: 8px 0;
+                        line-height: 1.5;
+                    }
+                </style>
+                
+                <div class="qrcode-container">
+                    <div class="qrcode-header">${methodIcon} ${methodName}</div>
+                    <div class="qrcode-title">扫一扫付款（元）</div>
+                    <div class="qrcode-amount">${amount}</div>
+                    <div class="qrcode-image">
+                        <svg width="210" height="210" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+                            <!-- 背景 -->
+                            <rect width="256" height="256" fill="#ffffff"/>
+                            
+                            <!-- 定位图案 -->
+                            <rect x="32" y="32" width="50" height="50" fill="#000000" rx="2"/>
+                            <rect x="174" y="32" width="50" height="50" fill="#000000" rx="2"/>
+                            <rect x="32" y="174" width="50" height="50" fill="#000000" rx="2"/>
+                            
+                            <!-- 定位图案内框 -->
+                            <rect x="46" y="46" width="22" height="22" fill="#ffffff" rx="1"/>
+                            <rect x="188" y="46" width="22" height="22" fill="#ffffff" rx="1"/>
+                            <rect x="46" y="188" width="22" height="22" fill="#ffffff" rx="1"/>
+                            
+                            <!-- 二维码数据区域 -->
+                            <rect x="130" y="32" width="10" height="34" fill="#000000"/>
+                            <rect x="106" y="32" width="10" height="34" fill="#000000"/>
+                            <rect x="32" y="106" width="34" height="10" fill="#000000"/>
+                            <rect x="32" y="130" width="34" height="10" fill="#000000"/>
+                            <rect x="130" y="210" width="10" height="14" fill="#000000"/>
+                            <rect x="106" y="210" width="10" height="14" fill="#000000"/>
+                            <rect x="210" y="106" width="14" height="10" fill="#000000"/>
+                            <rect x="210" y="130" width="14" height="10" fill="#000000"/>
+                            <rect x="154" y="154" width="58" height="58" fill="#000000"/>
+                            <rect x="168" y="168" width="30" height="30" fill="#ffffff"/>
+                            <rect x="84" y="84" width="8" height="8" fill="#000000"/>
+                            <rect x="104" y="84" width="8" height="8" fill="#000000"/>
+                            <rect x="124" y="84" width="8" height="8" fill="#000000"/>
+                            <rect x="144" y="84" width="8" height="8" fill="#000000"/>
+                            <rect x="84" y="104" width="8" height="8" fill="#000000"/>
+                            <rect x="124" y="104" width="8" height="8" fill="#000000"/>
+                            <rect x="144" y="104" width="8" height="8" fill="#000000"/>
+                            <rect x="84" y="124" width="8" height="8" fill="#000000"/>
+                            <rect x="104" y="124" width="8" height="8" fill="#000000"/>
+                            <rect x="144" y="124" width="8" height="8" fill="#000000"/>
+                            <rect x="84" y="144" width="8" height="8" fill="#000000"/>
+                            <rect x="104" y="144" width="8" height="8" fill="#000000"/>
+                            <rect x="124" y="144" width="8" height="8" fill="#000000"/>
+                            <rect x="174" y="84" width="8" height="8" fill="#000000"/>
+                            <rect x="194" y="84" width="8" height="8" fill="#000000"/>
+                            <rect x="174" y="104" width="8" height="8" fill="#000000"/>
+                            <rect x="194" y="104" width="8" height="8" fill="#000000"/>
+                            <rect x="174" y="124" width="8" height="8" fill="#000000"/>
+                            <rect x="194" y="124" width="8" height="8" fill="#000000"/>
+                            <rect x="84" y="174" width="8" height="8" fill="#000000"/>
+                            <rect x="104" y="174" width="8" height="8" fill="#000000"/>
+                            <rect x="124" y="174" width="8" height="8" fill="#000000"/>
+                            <rect x="194" y="174" width="8" height="8" fill="#000000"/>
+                            <rect x="84" y="194" width="8" height="8" fill="#000000"/>
+                            <rect x="104" y="194" width="8" height="8" fill="#000000"/>
+                            <rect x="124" y="194" width="8" height="8" fill="#000000"/>
+                            <rect x="144" y="194" width="8" height="8" fill="#000000"/>
+                            <rect x="174" y="194" width="8" height="8" fill="#000000"/>
+                            <rect x="194" y="194" width="8" height="8" fill="#000000"/>
+                        </svg>
+                    </div>
+                    <p class="qrcode-note">二维码有效期15分钟</p>
+                    <p class="qrcode-note">请尽快完成付款</p>
+                </div>
+            `;
+        }
+        
+        // 显示支付选项界面（从二维码界面返回）
+        function showPaymentOptions() {
+            openModal('充值');
         }
     </script>
 </body>

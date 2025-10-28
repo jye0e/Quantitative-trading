@@ -340,11 +340,11 @@
 
         .verification-btn {
             width: 120px;
-            padding: 0 10px;
-            background: rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(0, 0, 0, 0.2);
+            padding: 0 14px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.1);
             border-radius: 50px;
-            color: #333333;
+            color: #1a1a1a;
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 14px;
@@ -355,11 +355,13 @@
         }
 
         .verification-btn:hover:not(.disabled) {
-            background: rgba(0, 0, 0, 0.2);
+            border-color: #333333;
+            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
         }
 
         .verification-btn.disabled {
-            background: rgba(200, 200, 200, 0.5);
+            background: #f0f0f0;
+            border-color: #cccccc;
             color: #999999;
             cursor: not-allowed;
         }
@@ -428,7 +430,7 @@
                         <span>记住冒险家身份</span>
                     </div>
                     <div style="text-align: right;">
-                        <a href="#" class="link">忘记密钥？</a>
+                        <a href="reset-key.html?mode=forgot" class="link">忘记密钥？</a>
                     </div>
                 </div>
                 
@@ -479,7 +481,7 @@
                     </div>
                 </div>
                 
-                <button type="button" class="btn btn-register">
+                <button type="button" class="btn btn-register" onclick="handleRegister()">
                     <i class="fas fa-seedling"></i> 注册新账号
                 </button>
             </form>
@@ -500,6 +502,18 @@
             const loginForm = document.getElementById('login-form');
             const registerForm = document.getElementById('register-form');
             const footer = document.querySelector('.footer');
+            
+            // 初始化时确保默认显示登录页
+            function initFormState() {
+                loginTab.classList.add('active');
+                registerTab.classList.remove('active');
+                loginForm.classList.add('active');
+                registerForm.classList.remove('active');
+                footer.style.display = 'block';
+            }
+            
+            // 初始化表单状态
+            initFormState();
             
             loginTab.addEventListener('click', function() {
                 if (!loginTab.classList.contains('active')) {
@@ -546,10 +560,75 @@
                 });
             });
             
+            // 注册表单处理
+            function handleRegister() {
+                // 获取表单数据
+                const username = registerForm.querySelector('input[placeholder="创建冒险家账号"]').value;
+                const email = registerForm.querySelector('input[type="email"]').value;
+                const verificationCode = registerForm.querySelector('input[placeholder="请输入验证码"]').value;
+                const password = registerForm.querySelector('input[placeholder="创建秘境密钥"]').value;
+                const confirmPassword = registerForm.querySelector('input[placeholder="再次确认秘境密钥"]').value;
+                const agreement = registerForm.querySelector('.agreement .checkbox').classList.contains('checked');
+                
+                // 表单验证
+                if (!username || username.length < 3) {
+                    alert('请输入至少3个字符的冒险家账号');
+                    return;
+                }
+                
+                if (!email || !isValidEmail(email)) {
+                    alert('请输入有效的邮箱地址');
+                    return;
+                }
+                
+                if (!verificationCode) {
+                    alert('请输入验证码');
+                    return;
+                }
+                
+                if (!password || password.length < 6) {
+                    alert('秘境密钥长度至少为6个字符');
+                    return;
+                }
+                
+                if (password !== confirmPassword) {
+                    alert('两次输入的秘境密钥不一致');
+                    return;
+                }
+                
+                if (!agreement) {
+                    alert('请阅读并同意用户协议');
+                    return;
+                }
+                
+                // 模拟注册成功
+                alert('注册成功！即将跳转到登录页面');
+                // 跳转到登录页并自动填充账号
+                initFormState();
+                loginForm.querySelector('input[placeholder="请输入冒险家账号"]').value = username;
+                loginForm.querySelector('input[placeholder="请输入冒险家账号"]').focus();
+            }
+            
+            // 邮箱验证函数
+            function isValidEmail(email) {
+                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return re.test(email);
+            }
+            
             // 获取验证码按钮
             const verificationBtn = document.querySelector('.verification-btn');
             verificationBtn.addEventListener('click', function() {
+                const email = registerForm.querySelector('input[type="email"]').value;
+                
+                if (!email || !isValidEmail(email)) {
+                    alert('请先输入有效的邮箱地址');
+                    return;
+                }
+                
                 if (!this.classList.contains('disabled')) {
+                    // 模拟发送验证码
+                    alert('验证码已发送至您的邮箱：' + email);
+                    
                     this.classList.add('disabled');
                     this.textContent = '60秒后重新获取';
                     
