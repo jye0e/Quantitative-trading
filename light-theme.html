@@ -405,7 +405,7 @@
             line-height: 1.4;
         }
         
-        /* 炫酷登录动画样式 - 大圆形黑白效果 */
+        /* 炫酷登录动画样式 - 大圆形毛玻璃效果 */
         .boot-animation-overlay {
             position: fixed;
             top: 50%;
@@ -413,7 +413,9 @@
             width: 600px;
             height: 600px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #000000 0%, #333333 100%);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -422,6 +424,7 @@
             transition: all 0.5s ease;
             transform: translate(-50%, -50%);
             box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .boot-logo {
