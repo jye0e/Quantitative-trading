@@ -22,6 +22,84 @@
             overflow: hidden;
             position: relative;
         }
+        
+        /* 科技感3D背景效果 */
+        .tech-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -3;
+            overflow: hidden;
+            perspective: 1000px;
+        }
+        
+        .grid {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 800px;
+            height: 800px;
+            transform: translate(-50%, -50%) rotateX(60deg) rotateZ(45deg);
+            animation: gridRotate 40s infinite linear;
+        }
+        
+        .grid::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-size: 100% 100%;
+            background-position: 0 0;
+        }
+        
+        /* 为随机格子效果准备的基础样式 */
+        .random-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .particles {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 600px;
+            height: 600px;
+            transform: translate(-50%, -50%);
+        }
+        
+        .particles::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle, rgba(51, 102, 204, 0.4) 2px, transparent 2px);
+            background-size: 35px 35px;
+            animation: particlesMove 25s infinite linear;
+        }
+        
+        @keyframes gridRotate {
+            0% {
+                transform: translate(-50%, -50%) rotateX(60deg) rotateZ(45deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotateX(60deg) rotateZ(405deg);
+            }
+        }
+        
+        @keyframes particlesMove {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 100px 100px;
+            }
+        }
 
         /* 背景层 */
         .background {
@@ -508,11 +586,11 @@
 
         .verification-btn {
             width: 120px;
-            padding: 0 10px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 0 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 50px;
-            color: #ffffff;
+            color: #f0f0f0;
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 14px;
@@ -523,12 +601,14 @@
         }
 
         .verification-btn:hover:not(.disabled) {
-            background: rgba(255, 255, 255, 0.3);
+            border-color: #ffffff;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
         }
 
         .verification-btn.disabled {
-            background: rgba(160, 160, 160, 0.2);
-            color: #a0a0a0;
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #808080;
             cursor: not-allowed;
         }
 
@@ -553,6 +633,77 @@
 </head>
 <body>
     <div class="background"></div>
+    
+    <!-- 科技感3D点阵背景 -->
+    <div class="tech-background">
+        <div class="grid">
+            <div class="random-grid" id="randomGrid"></div>
+        </div>
+        <div class="particles"></div>
+    </div>
+    
+    <script>
+        // 生成随机大小的网格格子
+        function generateRandomGrid() {
+            const gridElement = document.getElementById('randomGrid');
+            const gridWidth = 800; // 与grid元素宽度一致
+            const gridHeight = 800; // 与grid元素高度一致
+            const minCellSize = 15;
+            const maxCellSize = 50;
+            
+            // 清空现有内容
+            gridElement.innerHTML = '';
+            
+            // 增加生成的格子数量，增强科技感
+            const numCells = 80; // 从30个增加到80个
+            let generatedCells = 0;
+            
+            // 逐个生成格子，让用户能看到实时生成的过程
+            const interval = setInterval(() => {
+                if (generatedCells >= numCells) {
+                    clearInterval(interval);
+                    return;
+                }
+                
+                const cellSize = Math.floor(Math.random() * (maxCellSize - minCellSize + 1)) + minCellSize;
+                const x = Math.floor(Math.random() * (gridWidth - cellSize));
+                const y = Math.floor(Math.random() * (gridHeight - cellSize));
+                const opacity = 0.15 + Math.random() * 0.2; // 随机透明度
+                
+                const cell = document.createElement('div');
+                cell.style.position = 'absolute';
+                cell.style.width = `${cellSize}px`;
+                cell.style.height = `${cellSize}px`;
+                cell.style.left = `${x}px`;
+                cell.style.top = `${y}px`;
+                // 加粗网格线并加深颜色
+                cell.style.border = `2px solid rgba(255, 255, 255, ${opacity * 1.5})`;
+                cell.style.borderRadius = '2px';
+                cell.style.transform = 'translateZ(0)'; // 启用GPU加速
+                
+                // 添加出现动画
+                cell.style.opacity = '0';
+                cell.style.transform = `translateZ(0) scale(0.5)`;
+                cell.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                
+                gridElement.appendChild(cell);
+                
+                // 触发动画
+                setTimeout(() => {
+                    cell.style.opacity = '1';
+                    cell.style.transform = 'translateZ(0) scale(1)';
+                }, 10);
+                
+                generatedCells++;
+            }, 50); // 每50ms生成一个格子，创造连续生成的视觉效果
+        }
+        
+        // 页面加载后生成随机网格
+        window.addEventListener('load', generateRandomGrid);
+        
+        // 加快更新频率，从30秒改为3秒，增强科技感
+        setInterval(generateRandomGrid, 3000);
+    </script>
     
     <div class="container">
         <!-- 顶部标识 -->

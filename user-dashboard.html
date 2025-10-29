@@ -137,6 +137,7 @@
             justify-content: center;
             align-items: center;
             margin-right: 15px;
+            border: 2px solid #000;
         }
         
         .avatar i {
@@ -507,7 +508,32 @@
 
         </div>
         
-        <!-- 已移除开机/下机功能 -->
+        <!-- 开机按钮 -->
+        <div style="margin: 20px 0; text-align: center;">
+            <button style="
+                width: 100%;
+                max-width: 600px;
+                padding: 14px;
+                border: none;
+                border-radius: 50px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                position: relative;
+                overflow: hidden;
+                background: linear-gradient(135deg, #333333, #1a1a1a);
+                color: #ffffff;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            " onclick="showElementPlusMessage('正在开机中，请稍候...', 'info')"
+              onmouseover="this.style.transform = 'translateY(-2px)'; this.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.4)'"
+              onmouseout="this.style.transform = 'translateY(0)'; this.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)'">
+                <i class="fas fa-power-off" style="margin-right: 8px; font-size: 14px;"></i> 开机
+            </button>
+        </div>
         
         <!-- 底部 -->
         <div class="footer">

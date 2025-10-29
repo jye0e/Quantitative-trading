@@ -58,10 +58,10 @@
             padding: 20px;
         }
 
-        /* 账号信息卡片 - 调整为上中下垂直排列，水平居中显示 */
+        /* 账号信息卡片 - 改为白色主题，与user-dashboard.html保持一致 */
         .account-card {
-            background: linear-gradient(135deg, #333333, #666666);
-            color: white;
+            background: white;
+            color: #333;
             border-radius: 15px;
             padding: 20px;
             margin-bottom: 20px;
@@ -81,7 +81,7 @@
             width: 80px;
             height: 80px;
             border-radius: 50%;
-            background-color: white;
+            background-color: #333;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -89,11 +89,12 @@
             overflow: hidden;
             cursor: pointer;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 2px solid #000;
         }
         
         .avatar:hover {
             transform: scale(1.05);
-            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
         
         .avatar img {
@@ -130,11 +131,12 @@
             font-size: 16px;
             font-weight: 600;
             margin-bottom: 5px;
+            color: #333;
         }
         
         .account-id {
             font-size: 14px;
-            opacity: 0.8;
+            color: #999;
         }
 
         /* 个人信息表单卡片 - 移除阴影，与user-dashboard.html保持一致 */
@@ -331,8 +333,8 @@
             
             <form id="profile-form">
                 <div class="input-group">
-                    <i class="input-icon fas fa-mobile-alt"></i>
-                    <input type="tel" id="phone" class="input-field" value="137******58" disabled>
+                    <i class="input-icon fas fa-envelope"></i>
+                    <input type="email" id="email" class="input-field" value="example@email.com" disabled>
                 </div>
                 
                 <div class="input-group">
@@ -341,13 +343,8 @@
                 </div>
                 
                 <div class="input-group">
-                    <i class="input-icon fas fa-envelope"></i>
-                    <input type="email" id="email" class="input-field" placeholder="请输入邮箱地址">
-                </div>
-                
-                <div class="input-group">
-                    <i class="input-icon fas fa-signature"></i>
-                    <input type="text" id="real-name" class="input-field" placeholder="请输入个性签名">
+                    <i class="input-icon fas fa-mobile-alt"></i>
+                    <input type="tel" id="phone" class="input-field" placeholder="请输入手机号">
                 </div>
                 
                 <!-- 按钮组 -->
