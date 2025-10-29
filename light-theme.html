@@ -83,9 +83,9 @@
         }
         
         .theme-toggle:hover {
-            background: #4d79ff !important;
+            background: #000000 !important;
             transform: scale(1.1) !important;
-            box-shadow: 0 0 20px rgba(51, 102, 204, 1) !important;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7) !important;
         }
         
         /* 顶部标识 */
@@ -248,13 +248,13 @@
         }
 
         .link {
-            color: #1677ff;
+            color: #000000;
             text-decoration: none;
             transition: color 0.3s ease;
         }
 
         .link:hover {
-            color: #0958d9;
+            color: #000000;
         }
 
         /* 按钮样式 */
@@ -366,6 +366,26 @@
             cursor: not-allowed;
         }
 
+        .recharge-btn {
+            padding: 12px 24px;
+            border-radius: 50px;
+            border: 1px solid #ccc;
+            background-color: white;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        .recharge-btn:hover {
+            border-color: #333333;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
         /* 协议勾选 */
         .agreement {
             display: flex;
@@ -384,6 +404,108 @@
             margin-left: 8px;
             line-height: 1.4;
         }
+        
+        /* 炫酷登录动画样式 */
+        .boot-animation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #000010 0%, #000033 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+            transition: opacity 0.5s ease;
+        }
+        
+        .boot-logo {
+            font-size: 60px;
+            color: #1677ff;
+            text-shadow: 0 0 30px rgba(22, 119, 255, 0.7);
+            margin-bottom: 30px;
+            opacity: 0;
+            transform: scale(0.8);
+            animation: logoAppear 1.5s ease forwards;
+        }
+        
+        @keyframes logoAppear {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .boot-progress-container {
+            width: 60%;
+            max-width: 400px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 40px;
+        }
+        
+        .boot-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #1677ff, #00b4ff);
+            border-radius: 2px;
+            width: 0%;
+            box-shadow: 0 0 10px rgba(22, 119, 255, 0.5);
+            animation: progressFill 4s ease-in-out forwards;
+        }
+        
+        @keyframes progressFill {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        
+        .boot-status {
+            color: #99ccff;
+            font-size: 16px;
+            margin-top: 20px;
+            opacity: 0;
+            animation: statusAppear 0.5s ease forwards 0.5s;
+        }
+        
+        @keyframes statusAppear {
+            to { opacity: 1; }
+        }
+        
+        .boot-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .boot-particle {
+            position: absolute;
+            background: rgba(22, 119, 255, 0.3);
+            border-radius: 50%;
+            animation: float linear infinite;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(var(--start-x)) scale(var(--size));
+                opacity: 0;
+            }
+            10% {
+                opacity: var(--opacity);
+            }
+            90% {
+                opacity: var(--opacity);
+            }
+            100% {
+                transform: translateY(-100vh) translateX(var(--end-x)) scale(var(--size));
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -398,9 +520,7 @@
            <div class="header">
                <div style="display: flex; justify-content: center; align-items: center;">
                    <h1 class="title">潮汐云</h1>
-                   <button class="theme-toggle" onclick="window.location.href='index.html'">🌙</button>
                </div>
-               <div class="subtitle">提瓦特大陆冒险家入口</div>
            </div>
         
         <!-- 切换栏 -->
@@ -434,9 +554,14 @@
                     </div>
                 </div>
                 
-                <button type="button" class="btn btn-login" onclick="window.location.href='user-dashboard.html'">
-                    <i class="fas fa-feather-alt"></i> 登录潮汐云
-                </button>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button type="button" class="btn btn-login" style="flex: 1;" id="loginButton">
+                        <i class="fas fa-feather-alt"></i> 登录潮汐云
+                    </button>
+                    <button type="button" class="recharge-btn" id="rechargeButton" onclick="window.location.href='user-dashboard.html'">
+                        <i class="fas fa-coins" style="margin-right: 8px;"></i> 充值
+                    </button>
+                </div>
             </form>
             
             <!-- 注册表单 -->
@@ -495,7 +620,85 @@
 
     <script src="polygon-background.js"></script>
     <script>
+        // 创建登录粒子效果
+        function createLoginParticles() {
+            const particlesContainer = document.createElement('div');
+            particlesContainer.className = 'boot-particles';
+            
+            // 创建50个随机粒子
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'boot-particle';
+                
+                // 随机属性
+                const size = Math.random() * 3 + 1;
+                const duration = Math.random() * 10 + 5;
+                const opacity = Math.random() * 0.5 + 0.1;
+                const startX = Math.random() * 100 - 50;
+                const endX = Math.random() * 100 - 50;
+                
+                // 设置CSS变量
+                particle.style.setProperty('--size', size);
+                particle.style.setProperty('--opacity', opacity);
+                particle.style.setProperty('--start-x', startX + 'px');
+                particle.style.setProperty('--end-x', endX + 'px');
+                
+                // 设置样式
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = duration + 's';
+                particle.style.animationDelay = Math.random() * 5 + 's';
+                
+                particlesContainer.appendChild(particle);
+            }
+            
+            return particlesContainer;
+        }
+        
         document.addEventListener('DOMContentLoaded', function() {
+            // 登录按钮点击事件，添加动效
+            document.getElementById('loginButton').addEventListener('click', function() {
+                const loginButton = this;
+                
+                // 禁用按钮
+                loginButton.disabled = true;
+                
+                // 创建登录动画元素
+                const bootAnimation = document.createElement('div');
+                bootAnimation.className = 'boot-animation-overlay';
+                
+                // 设置动画内容
+                bootAnimation.innerHTML = `
+                    <div class="boot-logo">潮汐云</div>
+                    <div class="boot-status" id="bootStatus">正在验证身份...</div>
+                    <div class="boot-progress-container">
+                        <div class="boot-progress-bar"></div>
+                    </div>
+                `;
+                
+                // 添加粒子效果
+                bootAnimation.appendChild(createLoginParticles());
+                
+                // 添加到body
+                document.body.appendChild(bootAnimation);
+                
+                // 模拟登录进度
+                setTimeout(() => {
+                    document.getElementById('bootStatus').textContent = '正在连接服务器...';
+                }, 1500);
+                
+                setTimeout(() => {
+                    document.getElementById('bootStatus').textContent = '登录成功，正在跳转...';
+                }, 3000);
+                
+                // 完成后跳转
+                setTimeout(() => {
+                    window.location.href = 'user-dashboard.html';
+                }, 4500);
+            });
+            
+        
             // 切换登录/注册
             const loginTab = document.getElementById('login-tab');
             const registerTab = document.getElementById('register-tab');
