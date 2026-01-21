@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kimi文件解析工具</title>
+    <!-- 引入Chart.js库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 24px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        .input-group {
+            margin-bottom: 24px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .api-key-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .api-key-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .file-upload {
+            border: 2px dashed #e1e5e9;
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+        
+        .file-upload:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .file-upload input[type="file"] {
+            display: none;
+        }
+        
+        .file-upload-label {
+            display: block;
+            color: #667eea;
+            font-weight: 500;
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+        
+        .file-upload-hint {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .selected-file {
+            margin-top: 16px;
+            padding: 12px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            color: #1565c0;
+            font-size: 14px;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: #333333;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 24px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            background: #555555;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px;
+            color: #667eea;
+            font-weight: 500;
+        }
+        
+        .loading::before {
+            content: '';
+            width: 24px;
+            height: 24px;
+            border: 3px solid #f0f0f0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            margin-right: 12px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .result {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 24px;
+            border-left: 4px solid #333333;
+        }
+        
+        .result h3 {
+            color: #333;
+            margin-bottom: 16px;
+            font-size: 20px;
+        }
+        
+        .result-content {
+            color: #555;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            font-size: 15px;
+        }
+        
+        .error {
+            background: #ffebee;
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid #f44336;
+            color: #c62828;
+            margin-bottom: 24px;
+        }
+        
+        .info {
+            background: #e3f2fd;
+            border-radius: 12px;
+            padding: 16px;
+            color: #1565c0;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .file-upload {
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 文件解析及图表生成工具</h1>
+        
+        <div class="info">
+            <strong>使用说明：</strong><br>
+            1. 上传支持的文件（PDF、TXT、DOC/DOCX等）<br>
+            2. 点击"解析文件"按钮，等待API处理<br>
+            3. 查看解析结果
+        </div>
+        
+        <div class="input-group" style="display: none;">
+            <label for="apiKey">🔑 Kimi API密钥</label>
+            <input type="password" id="apiKey" class="api-key-input" placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" value="sk-dYhIrwMQyo8RHzypT68X9tXdxYrXNXQgthcsj5sFwXZR0K1x" required>
+        </div>
+        
+        <div class="input-group" style="display: none;">
+            <label for="prompt">💡 分析提示词</label>
+            <textarea id="prompt" class="api-key-input" rows="10" placeholder="请输入分析提示词..."># 角色 
+ 你是一个专业的合同分析助手，专门从各类合同文档中提取结构化信息。 
+
+ ## 技能 
+ 1. 精准识别合同中的关键信息字段 
+ 2. 理解表格结构和数据关系 
+ 3. 将非结构化文本转换为结构化数据 
+ 4. 严格按照JSON格式输出结果 
+
+ ## 约束 
+ - 只输出JSON格式代码，不添加任何解释性文字 
+ - 确保JSON格式完全正确，可直接解析 
+ - 严格按照以下固定表头结构和顺序输出： 
+   - 序号 
+   - 产品 
+   - 供应商 
+   - 省份 
+   - 城市 
+   - 单位 
+   - 基准价 
+   - 基准价参照地域 
+   - 2025年10月我的钢铁网平均价 
+   - 高线 
+   - 浮动额（元/t） 
+   - 浮动后参考价格 
+   - 备注 
+ - 未找到的字段使用空字符串""或适当默认值 
+ - 保持数据类型一致性（字符串、数字等） 
+
+ ## 输入格式 
+ 用户将提供合同文档内容（可能包含表格） 
+
+ ## 输出格式 
+ 仅输出JSON数组，每个元素对应一条记录，包含所有表头字段。 
+
+ ## 处理流程 
+ 1. 分析合同内容，识别所有相关数据 
+ 2. 将数据映射到固定表头字段 
+ 3. 按指定顺序组织JSON结构 
+ 4. 输出纯净的JSON代码 
+
+ ## 响应示例 
+ [ 
+   { 
+     "序号": "1", 
+     "产品": "高线Φ6 HPB300", 
+     "供应商": "XX公司", 
+     "省份": "XX省", 
+     "城市": "XX市", 
+     "单位": "吨", 
+     "基准价": "", 
+     "基准价参照地域": "XX", 
+     "2025年10月我的钢铁网平均价": "", 
+     "高线": "高线Φ6 HPB300 3408元/吨", 
+     "浮动额（元/t）": -50, 
+     "浮动后参考价格": "", 
+     "备注": "备注信息" 
+   }, 
+   { 
+     "序号": "2", 
+     "产品": "高线Φ8 HPB300", 
+     "供应商": "XX公司", 
+     "省份": "XX省", 
+     "城市": "XX市", 
+     "单位": "吨", 
+     "基准价": "", 
+     "基准价参照地域": "XX", 
+     "2025年10月我的钢铁网平均价": "", 
+     "高线": "高线Φ8 HPB300 3408元/吨", 
+     "浮动额（元/t）": -60, 
+     "浮动后参考价格": "", 
+     "备注": "备注信息" 
+   } 
+ ] 
+
+ 现在请分析提供的合同内容，并按固定表头结构输出JSON代码。</textarea>
+        </div>
+        
+        <div class="input-group">
+            <label for="fileUpload" class="file-upload-label">📁 上传文件</label>
+            <div class="file-upload" onclick="document.getElementById('fileUpload').click()">
+                <input type="file" id="fileUpload" accept=".pdf,.txt,.doc,.docx,.ppt,.pptx" required>
+                <div class="file-upload-hint">点击选择文件或拖拽文件到此处（支持PDF、TXT、Word等格式）</div>
+                <div id="selectedFile" class="selected-file" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <button id="parseBtn" class="btn" onclick="parseFile()">解析文件</button>
+        
+        <div id="resultArea" style="display: none;"></div>
+    </div>
+
+    <script>
+        // 监听文件选择
+        document.getElementById('fileUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const selectedFileDiv = document.getElementById('selectedFile');
+                selectedFileDiv.textContent = `已选择：${file.name}（${(file.size / 1024 / 1024).toFixed(2)} MB）`;
+                selectedFileDiv.style.display = 'block';
+            }
+        });
+
+        // 解析文件主函数
+        async function parseFile() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const fileInput = document.getElementById('fileUpload');
+            const prompt = document.getElementById('prompt').value.trim();
+            const resultArea = document.getElementById('resultArea');
+            const parseBtn = document.getElementById('parseBtn');
+            
+            // 验证输入
+            if (!apiKey) {
+                showError('请输入Kimi API密钥');
+                return;
+            }
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showError('请选择要解析的文件');
+                return;
+            }
+            
+            if (!prompt) {
+                showError('请输入分析提示词');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            
+            // 验证文件大小（Kimi限制100MB）
+            if (file.size > 100 * 1024 * 1024) {
+                showError('文件大小超过限制（最大100MB）');
+                return;
+            }
+            
+            try {
+                // 显示加载状态
+                parseBtn.disabled = true;
+                showLoading();
+                
+                // 第一步：上传文件获取file_id（接口1）
+                const fileId = await uploadFileToKimi(apiKey, file);
+                
+                // 第二步：获取文件内容（接口2）
+                const fileContent = await getFileContentForAnalysis(apiKey, fileId);
+                
+                // 第三步：使用文件内容进行分析（接口3）
+                const result = await analyzeFileWithContent(apiKey, fileContent, file.name, prompt);
+                
+                // 显示结果
+                showResult(result);
+                
+            } catch (error) {
+                console.error('解析失败:', error);
+                
+                // 针对token限制错误提供特定提示
+                if (error.message.includes('token limit') || error.message.includes('exceeded model')) {
+                    showError(`解析失败：文件内容过长，超过了模型处理能力。请尝试：\n1. 使用较小的文件\n2. 或联系管理员升级API配额\n\n错误详情：${error.message}`);
+                } else if (error.message.includes('API Key')) {
+                    showError(`API密钥无效或已过期，请检查您的API密钥设置。\n\n错误详情：${error.message}`);
+                } else {
+                    showError(`解析失败: ${error.message || '未知错误'}`);
+                }
+            } finally {
+                parseBtn.disabled = false;
+            }
+        }
+
+        // 第一步：上传文件到Kimi API获取file_id
+        async function uploadFileToKimi(apiKey, file) {
+            // 创建FormData对象
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const response = await fetch('https://api.moonshot.cn/v1/files', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`
+                    // 注意：Content-Type由浏览器自动设置为multipart/form-data
+                },
+                body: formData
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(`文件上传失败: ${errorData.error?.message || response.statusText}`);
+            }
+            
+            const data = await response.json();
+            return data.id;
+        }
+
+        // 第二步：获取文件内容（接口2）
+        async function getFileContentForAnalysis(apiKey, fileId) {
+            // 获取文件内容（接口2 - 不需要提示词和文件名）
+            let fileContent = '';
+            try {
+                fileContent = await getFileContent(apiKey, fileId);
+                console.log('文件内容获取成功，长度：', fileContent.length);
+                return fileContent;
+            } catch (error) {
+                console.error('获取文件内容失败：', error);
+                throw new Error(`无法获取文件内容：${error.message}`);
+            }
+        }
+        
+        // 第三步：使用文件内容进行分析（接口3）
+        async function analyzeFileWithContent(apiKey, fileContent, fileName, prompt) {
+            // 直接使用原始提示词
+            
+            // 构建JSON请求体（接口3 - 使用文件内容和提示词）
+            const requestBody = {
+                model: "moonshot-v1-128k", // 使用更高token限制的模型
+                messages: [
+                    {
+                        role: "system",
+                        content: prompt
+                    },
+                    {
+                        role: "user",
+                        content: `请分析文件内容并返回JSON格式数据。\n\n文件名称：${fileName}\n文件内容：\n${fileContent}`
+                    }
+                ],
+                temperature: 0.1,
+                max_tokens: 8000
+            };
+            
+            const response = await fetch('https://api.moonshot.cn/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(`解析失败: ${errorData.error?.message || response.statusText}`);
+            }
+            
+            const data = await response.json();
+            return data.choices[0].message.content;
+        }
+        
+        // 简化提示词，减少token使用（暂时注释掉）
+        /*
+        function simplifyPrompt(originalPrompt) {
+            // 提取关键指令，移除冗长的示例和说明
+            return `请分析上传的文件内容，提取以下结构化信息：
+- 序号、产品、供应商、省份、城市、单位
+- 基准价、基准价参照地域、2025年10月我的钢铁网平均价
+- 高线、浮动额（元/t）、浮动后参考价格、备注
+
+请严格输出JSON数组格式，每个字段使用空字符串""作为默认值。只输出JSON代码，不添加任何解释。`;
+        }
+        */
+        
+        // 获取文件内容（必需的第二步）
+        async function getFileContent(apiKey, fileId) {
+            // 尝试不同的接口路径
+            const endpoints = [
+                `https://api.moonshot.cn/v1/files/${fileId}/content`,  // 优先尝试
+                `https://api.moonshot.cn/v1/files/${fileId}`,          // 备选
+                `https://api.moonshot.cn/v1/files/${fileId}/extraction` // 最后尝试
+            ];
+            
+            let lastError = '';
+            
+            for (const endpoint of endpoints) {
+                try {
+                    console.log(`尝试调用接口：${endpoint}`);
+                    const response = await fetch(endpoint, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${apiKey}`,
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log(`接口 ${endpoint} 调用成功，响应数据：`, data);
+                        
+                        // 尝试不同的字段名，优先使用content字段
+                        const content = data.content || data.text || data.extraction || JSON.stringify(data);
+                        return content;
+                    } else {
+                        const errorData = await response.json().catch(() => ({}));
+                        lastError = `${endpoint}: ${errorData.error?.message || response.statusText}`;
+                        console.log(`接口 ${endpoint} 调用失败：`, lastError);
+                        
+                        // 如果是API Key错误，直接抛出
+                        if (errorData.error?.type === 'incorrect_api_key_error') {
+                            throw new Error(`API Key无效：${errorData.error.message}`);
+                        }
+                    }
+                } catch (error) {
+                    lastError = `${endpoint}: ${error.message}`;
+                    console.log(`接口 ${endpoint} 调用异常：`, error);
+                }
+            }
+            
+            // 如果所有接口都失败，抛出错误
+            throw new Error(`所有文件内容接口都失败，最后错误：${lastError}`);
+        }
+        
+        // 文件转Base64函数
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = error => reject(error);
+            });
+        }
+        
+        // 下载CSV文件
+        function downloadCSV(jsonDataStr) {
+            try {
+                // 解析JSON数据
+                const jsonData = JSON.parse(jsonDataStr);
+                
+                if (!Array.isArray(jsonData) || jsonData.length === 0) {
+                    alert('没有数据可下载');
+                    return;
+                }
+                
+                // 获取表头
+                const headers = Object.keys(jsonData[0]);
+                
+                // 生成CSV内容
+                let csvContent = headers.join(',') + '\n';
+                
+                jsonData.forEach(item => {
+                    const row = headers.map(header => {
+                        let value = item[header] || '';
+                        // 处理包含逗号或引号的值
+                        if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+                            value = '"' + value.replace(/"/g, '""') + '"';
+                        }
+                        return value;
+                    });
+                    csvContent += row.join(',') + '\n';
+                });
+                
+                // 创建下载链接
+                const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = '解析结果.csv';
+                link.click();
+                URL.revokeObjectURL(url);
+                
+            } catch (error) {
+                console.error('下载CSV失败:', error);
+                alert('下载CSV失败：' + error.message);
+            }
+        }
+        
+        // 下载Excel文件（使用CSV格式，因为Excel可以打开CSV）
+        function downloadExcel(jsonDataStr) {
+            try {
+                // 解析JSON数据
+                const jsonData = JSON.parse(jsonDataStr);
+                
+                if (!Array.isArray(jsonData) || jsonData.length === 0) {
+                    alert('没有数据可下载');
+                    return;
+                }
+                
+                // 获取表头
+                const headers = Object.keys(jsonData[0]);
+                
+                // 生成Excel兼容的CSV内容
+                let csvContent = headers.join('\t') + '\n';
+                
+                jsonData.forEach(item => {
+                    const row = headers.map(header => {
+                        let value = item[header] || '';
+                        // 处理包含制表符的值
+                        if (typeof value === 'string' && value.includes('\t')) {
+                            value = '"' + value.replace(/"/g, '""') + '"';
+                        }
+                        return value;
+                    });
+                    csvContent += row.join('\t') + '\n';
+                });
+                
+                // 创建下载链接
+                const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = '解析结果.xls';
+                link.click();
+                URL.revokeObjectURL(url);
+                
+            } catch (error) {
+                console.error('下载Excel失败:', error);
+                alert('下载Excel失败：' + error.message);
+            }
+        }
+
+        // 显示加载状态
+        function showLoading() {
+            const resultArea = document.getElementById('resultArea');
+            resultArea.innerHTML = '<div class="loading">正在解析文件，请稍候...</div>';
+            resultArea.style.display = 'block';
+        }
+
+        // 显示结果
+        function showResult(content) {
+            const resultArea = document.getElementById('resultArea');
+            
+            // 尝试解析JSON结果
+            let jsonData;
+            try {
+                // 移除可能的代码块标记
+                const cleanedContent = content.replace(/```json|```/g, '').trim();
+                jsonData = JSON.parse(cleanedContent);
+            } catch (error) {
+                // 如果不是JSON格式，直接显示原始内容
+                resultArea.innerHTML = `
+                    <div class="result">
+                        <h3>📋 解析结果</h3>
+                        <div class="result-content">${content}</div>
+                    </div>
+                `;
+                resultArea.style.display = 'block';
+                return;
+            }
+            
+            // 如果是JSON数组，转换为表格
+            if (Array.isArray(jsonData) && jsonData.length > 0) {
+                // 获取表头字段
+                const headers = Object.keys(jsonData[0]);
+                
+                // 生成表格HTML
+                let tableHtml = `
+                    <div class="result">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <h3>📋 解析结果</h3>
+                            <div>
+                                <button onclick="downloadCSV('${JSON.stringify(jsonData).replace(/'/g, "\\'")}')" class="btn" style="width: auto; padding: 8px 16px; font-size: 14px; margin-right: 8px;">📥 下载CSV</button>
+                                <button onclick="downloadExcel('${JSON.stringify(jsonData).replace(/'/g, "\\'")}')" class="btn" style="width: auto; padding: 8px 16px; font-size: 14px;">📥 下载Excel</button>
+                            </div>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; margin-bottom: 16px;">
+                                <thead>
+                                    <tr style="background: #f0f0f0; color: #333;">
+                `;
+                
+                // 添加表头
+                headers.forEach(header => {
+                    tableHtml += `<th style="padding: 12px; text-align: left; border: 1px solid #e1e5e9;">${header}</th>`;
+                });
+                
+                tableHtml += `
+                                    </tr>
+                                </thead>
+                                <tbody>
+                `;
+                
+                // 添加数据行
+                jsonData.forEach(row => {
+                    tableHtml += '<tr style="border-bottom: 1px solid #e1e5e9;">';
+                    headers.forEach(header => {
+                        const value = row[header] !== undefined ? row[header] : '';
+                        tableHtml += `<td style="padding: 12px; border: 1px solid #e1e5e9;">${value}</td>`;
+                    });
+                    tableHtml += '</tr>';
+                });
+                
+                tableHtml += `
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="result-content" style="margin-top: 16px; padding: 16px; background: #f8f9fa; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleJson(this)">
+                                <h4>原始JSON数据：</h4>
+                                <span style="color: #333333; font-weight: bold;">▼</span>
+                            </div>
+                            <div class="json-content" style="display: none; margin-top: 16px; overflow: auto; max-height: 400px;">
+                                <pre>${JSON.stringify(jsonData, null, 2)}</pre>
+                            </div>
+                        </div>
+                        
+                        <!-- 可视化配置区域 -->
+                        <div style="margin-top: 24px; padding: 24px; background: #f8f9fa; border-radius: 12px;">
+                            <h3>📊 可视化配置</h3>
+                            
+                            <!-- 图表类型选择 -->
+                            <div style="margin-top: 16px;">
+                                <label style="display: block; margin-bottom: 8px; font-size: 14px; color: #666; font-weight: 500;">选择图表类型：</label>
+                                <select id="globalChartType" style="width: 100%; padding: 10px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px;">
+                                    <option value="bar">柱状图</option>
+                                    <option value="line" selected>折线图</option>
+                                    <option value="pie">饼图</option>
+                                    <option value="scatter">散点图</option>
+                                    <option value="radar">雷达图</option>
+                                </select>
+                            </div>
+                            
+                            <!-- 字段多选 -->
+                            <div style="margin-top: 16px;">
+                                <label style="display: block; margin-bottom: 8px; font-size: 14px; color: #666; font-weight: 500;">选择图表字段（最多3个）：</label>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; max-height: 300px; overflow-y: auto; padding: 12px; background: white; border: 2px solid #e1e5e9; border-radius: 8px;">
+                                    ${headers.map((header, index) => `
+                                    <label style="display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 6px; transition: background 0.2s; cursor: pointer;">
+                                        <input type="checkbox" class="field-checkbox" value="${header}" onchange="limitFieldSelection(this)" style="width: 18px; height: 18px; cursor: pointer;">
+                                        <span style="font-size: 14px; color: #333;">${header}</span>
+                                    </label>
+                                    `).join('')}
+                                </div>
+                                <div id="fieldSelectionInfo" style="margin-top: 8px; font-size: 13px; color: #333333; font-weight: 500;">已选择：0/3</div>
+                            </div>
+                            
+                            <!-- 自定义输入 -->
+                            <div style="margin-top: 16px;">
+                                <label style="display: block; margin-bottom: 8px; font-size: 14px; color: #666; font-weight: 500;">自定义说明：</label>
+                                <textarea id="customInput" placeholder="1.请填入生成可视化图表的3个表头字段；2.想要表达的特别需求等" style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; min-height: 80px; resize: vertical; outline: none; font-family: inherit;" onfocus="this.style.borderColor='#333333'" onblur="this.style.borderColor='#e1e5e9'"></textarea>
+                            </div>
+                            
+                            <!-- 按钮区域 -->
+                            <div style="display: flex; gap: 16px; margin-top: 24px;">
+                                <button onclick="recommendPrompts()" class="btn" style="flex: 1; padding: 12px; font-size: 16px;">🤖 推荐提示词</button>
+                            </div>
+                            
+                            <!-- 存储数据到隐藏字段 -->
+                            <input type="hidden" id="jsonDataStorage" value='${JSON.stringify(jsonData).replace(/'/g, "\\'")}'>
+                        </div>
+                        
+                        <!-- 提示词编辑区域 -->
+                        <div id="promptEditArea" style="margin-top: 24px; padding: 24px; background: #f8f9fa; border-radius: 12px; display: none;">
+                            <h3>✏️ 提示词编辑</h3>
+                            <div id="promptEditContainer"></div>
+                            
+                            <!-- 生成图表按钮，位于提示词后面 -->
+                            <div style="display: flex; margin-top: 24px;">
+                                <button onclick="generateCharts()" class="btn" style="flex: 1; padding: 12px; font-size: 16px;">✨ 生成图表</button>
+                            </div>
+                        </div>
+                        
+                        <!-- 图表展示区域 -->
+                        <div id="chartsArea" style="margin-top: 24px;">
+                            <h3>📈 生成的图表</h3>
+                            <div id="chartsContainer" style="margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px;"></div>
+                        </div>
+                    </div>
+                `;
+                
+                resultArea.innerHTML = tableHtml;
+            } else {
+                // 如果不是数组，直接显示JSON
+                resultArea.innerHTML = `
+                    <div class="result">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <h3>📋 解析结果</h3>
+                            <button onclick="downloadJSON('${JSON.stringify(jsonData).replace(/'/g, "\\'")}')" class="btn" style="width: auto; padding: 8px 16px; font-size: 14px;">📥 下载JSON</button>
+                        </div>
+                        <div class="result-content">
+                            <pre>${JSON.stringify(jsonData, null, 2)}</pre>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            resultArea.style.display = 'block';
+        }
+
+        // 显示错误
+        function showError(message) {
+            const resultArea = document.getElementById('resultArea');
+            resultArea.innerHTML = `<div class="error">⚠️ ${message}</div>`;
+            resultArea.style.display = 'block';
+        }
+
+        // 支持拖拽上传
+        document.querySelector('.file-upload').addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#667eea';
+            this.style.background = '#f0f4ff';
+        });
+
+        document.querySelector('.file-upload').addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#e1e5e9';
+            this.style.background = '#f8f9fa';
+        });
+
+        document.querySelector('.file-upload').addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#e1e5e9';
+            this.style.background = '#f8f9fa';
+            
+            if (e.dataTransfer.files.length > 0) {
+                const fileInput = document.getElementById('fileUpload');
+                fileInput.files = e.dataTransfer.files;
+                
+                const file = e.dataTransfer.files[0];
+                const selectedFileDiv = document.getElementById('selectedFile');
+                selectedFileDiv.textContent = `已选择：${file.name}（${(file.size / 1024 / 1024).toFixed(2)} MB）`;
+                selectedFileDiv.style.display = 'block';
+            }
+        });
+
+        // 下载功能函数
+        
+        // 下载JSON文件
+        function downloadJSON(jsonData) {
+            const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `解析结果_${new Date().getTime()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 切换JSON内容的展开/折叠
+        function toggleJson(element) {
+            const jsonContent = element.nextElementSibling;
+            const arrow = element.querySelector('span');
+            
+            if (jsonContent.style.display === 'none' || jsonContent.style.display === '') {
+                jsonContent.style.display = 'block';
+                arrow.textContent = '▲';
+            } else {
+                jsonContent.style.display = 'none';
+                arrow.textContent = '▼';
+            }
+        }
+
+        // 限制字段选择为最多3个
+        function limitFieldSelection(checkbox) {
+            const checkboxes = document.querySelectorAll('.field-checkbox');
+            const checkedBoxes = Array.from(checkboxes).filter(cb => cb.checked);
+            
+            if (checkedBoxes.length > 3) {
+                checkbox.checked = false;
+                showError('最多只能选择3个字段');
+                return;
+            }
+            
+            // 更新选择信息
+            const infoDiv = document.getElementById('fieldSelectionInfo');
+            if (infoDiv) {
+                infoDiv.textContent = `已选择：${checkedBoxes.length}/3`;
+            }
+            
+            // 更新标签样式
+            checkboxes.forEach(cb => {
+                const parentDiv = cb.parentElement.parentElement;
+                if (cb.checked) {
+                    parentDiv.style.background = '#e3f2fd';
+                } else {
+                    parentDiv.style.background = 'transparent';
+                }
+            });
+        }
+
+        // 调用Kimi API自动推荐提示词
+        async function recommendPrompts() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            if (!apiKey) {
+                showError('请输入Kimi API密钥');
+                return;
+            }
+            
+            // 从隐藏字段读取JSON数据
+            const jsonDataStorage = document.getElementById('jsonDataStorage');
+            if (!jsonDataStorage) {
+                showError('未找到数据存储，请重新解析文件');
+                return;
+            }
+            
+            let jsonData;
+            try {
+                jsonData = JSON.parse(jsonDataStorage.value);
+            } catch (error) {
+                showError('数据解析错误，请重新解析文件');
+                return;
+            }
+            
+            // 获取图表类型和自定义说明
+            const globalChartType = document.getElementById('globalChartType').value;
+            const customInput = document.getElementById('customInput').value.trim();
+            
+            // 两者都可选，如果都没有填写，使用默认提示
+            if (!customInput) {
+                // 如果没有自定义说明，使用默认提示
+                console.log('没有自定义说明，使用默认提示');
+            }
+            
+            // 构建请求体
+            const requestBody = {
+                model: "moonshot-v1-8k",
+                messages: [
+                    {
+                        role: "system",
+                        content: "你是一个专业的可视化提示词生成助手。根据用户提供的数据结构和自定义说明，生成3种不同的可视化提示词，用于调用AI生成图表。"
+                    },
+                    {
+                        role: "user",
+                        content: `以下是数据结构：
+${JSON.stringify(jsonData.slice(0, 2), null, 2)}
+
+用户的自定义说明：
+${customInput}
+
+图表类型：${globalChartType}
+
+请根据以上信息生成3种不同的可视化提示词，每个提示词应包含：
+- 明确的数据字段选择
+- 图表类型和样式要求
+- 数据分析角度
+- 可视化目的
+- 适合的配色方案
+
+请按以下格式输出，每个提示词用###分隔：
+###
+提示词1
+###
+提示词2
+###
+提示词3
+###`
+                    }
+                ],
+                temperature: 0.7,
+                max_tokens: 1024
+            };
+            
+            try {
+                // 显示加载状态
+                const promptBtn = event.target;
+                const originalText = promptBtn.textContent;
+                promptBtn.disabled = true;
+                promptBtn.textContent = '生成中...';
+                
+                // 调用Kimi API
+                const response = await fetch('https://api.moonshot.cn/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(`提示词生成失败: ${errorData.error?.message || response.statusText}`);
+                }
+                
+                const data = await response.json();
+                const content = data.choices[0].message.content;
+                
+                // 解析生成的提示词
+                const prompts = content.split('###').map(p => p.trim()).filter(p => p.length > 0);
+                
+                // 动态生成提示词编辑区域
+                const promptEditContainer = document.getElementById('promptEditContainer');
+                if (promptEditContainer) {
+                    promptEditContainer.innerHTML = prompts.map((prompt, index) => `
+                        <div style="margin-top: 16px; padding: 16px; background: white; border: 2px solid #e1e5e9; border-radius: 8px;">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                <input type="radio" name="selectedPrompt" value="${index}" ${index === 0 ? 'checked' : ''} style="width: 20px; height: 20px; cursor: pointer;">
+                                <h4 style="margin: 0; font-size: 16px;">提示词 ${index + 1}</h4>
+                            </div>
+                            <textarea class="prompt-edit" data-index="${index}" rows="6" style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; resize: vertical; font-family: inherit;">${prompt}</textarea>
+                        </div>
+                    `).join('');
+                }
+                
+                // 显示提示词编辑区域
+                const promptEditArea = document.getElementById('promptEditArea');
+                promptEditArea.style.display = 'block';
+                
+                // 恢复按钮状态
+                promptBtn.disabled = false;
+                promptBtn.textContent = originalText;
+                
+            } catch (error) {
+                console.error('提示词生成失败:', error);
+                showError(`提示词生成失败: ${error.message || '未知错误'}`);
+                // 恢复按钮状态
+                const promptBtn = event.target;
+                promptBtn.disabled = false;
+                promptBtn.textContent = '🤖 推荐提示词';
+            }
+        }
+
+        // 下载CSV文件
+        function downloadCSV(jsonData) {
+            const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
+            if (!Array.isArray(data) || data.length === 0) return;
+            
+            // 获取表头
+            const headers = Object.keys(data[0]);
+            
+            // 生成CSV内容
+            let csvContent = headers.join(',') + '\n';
+            
+            // 添加数据行
+            data.forEach(row => {
+                const rowData = headers.map(header => {
+                    const value = row[header] !== undefined ? row[header] : '';
+                    // 处理包含逗号、引号或换行符的字段
+                    if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+                        return `"${value.replace(/"/g, '""')}"`;
+                    }
+                    return value;
+                });
+                csvContent += rowData.join(',') + '\n';
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `解析结果_${new Date().getTime()}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 下载Excel文件（实际上是CSV格式，Excel可以直接打开）
+        function downloadExcel(jsonData) {
+            const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
+            if (!Array.isArray(data) || data.length === 0) return;
+            
+            // 获取表头
+            const headers = Object.keys(data[0]);
+            
+            // 生成CSV内容（Excel兼容）
+            let csvContent = headers.join(',') + '\n';
+            
+            // 添加数据行
+            data.forEach(row => {
+                const rowData = headers.map(header => {
+                    const value = row[header] !== undefined ? row[header] : '';
+                    // 处理包含逗号、引号或换行符的字段
+                    if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+                        return `"${value.replace(/"/g, '""')}"`;
+                    }
+                    return value;
+                });
+                csvContent += rowData.join(',') + '\n';
+            });
+            
+            // 为Excel添加BOM以正确显示中文
+            const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+            const blob = new Blob([bom, csvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `解析结果_${new Date().getTime()}.xls`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 生成可视化图表（调用Kimi API获取Chart.js数据）
+        async function generateCharts() {
+            // 获取API密钥
+            const apiKey = document.getElementById('apiKey').value.trim();
+            console.log('API Key length:', apiKey.length);
+            console.log('API Key starts with:', apiKey.substring(0, 10));
+            
+            if (!apiKey) {
+                showError('请输入Kimi API密钥');
+                return;
+            }
+            
+            // 获取用户选择的提示词
+            const selectedPromptRadio = document.querySelector('input[name="selectedPrompt"]:checked');
+            if (!selectedPromptRadio) {
+                showError('请先选择一个提示词');
+                return;
+            }
+            
+            const promptIndex = selectedPromptRadio.value;
+            const promptTextarea = document.querySelector(`.prompt-edit[data-index="${promptIndex}"]`);
+            const selectedPrompt = promptTextarea ? promptTextarea.value.trim() : '';
+            
+            if (!selectedPrompt) {
+                showError('请先点击"推荐提示词"按钮生成提示词');
+                return;
+            }
+            
+            // 从隐藏字段获取数据
+            const jsonDataStorage = document.getElementById('jsonDataStorage');
+            if (!jsonDataStorage) {
+                showError('未找到数据存储，请重新解析文件');
+                return;
+            }
+            
+            const jsonData = JSON.parse(jsonDataStorage.value);
+            console.log('JSON data length:', jsonData.length);
+            
+            // 显示加载状态
+            const generateBtn = event.target;
+            const originalText = generateBtn.textContent;
+            generateBtn.disabled = true;
+            generateBtn.textContent = '生成中...';
+            
+            // 清空图表容器
+            const chartsContainer = document.getElementById('chartsContainer');
+            chartsContainer.innerHTML = '<div class="loading" style="grid-column: 1 / -1;">正在生成图表，请稍候...</div>';
+            
+            try {
+                // 构建请求体
+                const requestBody = {
+                    model: "moonshot-v1-8k",
+                    messages: [
+                        {
+                            role: "system",
+                            content: "你是一个专业的数据可视化助手。根据用户提供的数据和提示词，生成Chart.js图表所需的数据格式。请直接返回JSON格式的数据，不要包含任何其他文字说明。"
+                        },
+                        {
+                            role: "user",
+                            content: `以下是数据：
+${JSON.stringify(jsonData, null, 2)}
+
+请根据以下提示词生成Chart.js图表所需的数据格式：
+${selectedPrompt}
+
+请返回符合以下格式的JSON数组，每个元素代表一个图表的配置：
+[
+  {
+    "type": "bar",
+    "title": "图表标题",
+    "data": {
+      "labels": ["标签1", "标签2", ...],
+      "datasets": [
+        {
+          "label": "数据集名称",
+          "data": [数值1, 数值2, ...],
+          "backgroundColor": "rgba(102, 126, 234, 0.6)",
+          "borderColor": "rgba(102, 126, 234, 1)",
+          "borderWidth": 1
+        }
+      ]
+    }
+  }
+]
+
+注意：
+1. type必须是以下之一：bar, line, pie, scatter, radar
+2. labels和数据数组长度必须一致
+3. 所有数值必须是数字类型
+4. 只返回JSON数组，不要包含任何其他文字`
+                        }
+                    ],
+                    temperature: 0.7,
+                    max_tokens: 2048
+                };
+                
+                // 调用Kimi API
+                console.log('Calling Kimi API for chart data...');
+                console.log('Request body length:', JSON.stringify(requestBody).length);
+                
+                const response = await fetch('https://api.moonshot.cn/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('Error data:', errorData);
+                    throw new Error(`图表数据生成失败: ${errorData.error?.message || response.statusText}`);
+                }
+                
+                const data = await response.json();
+                const content = data.choices[0].message.content;
+                
+                // 解析返回的JSON数据
+                let chartConfigs;
+                try {
+                    chartConfigs = JSON.parse(content);
+                } catch (parseError) {
+                    throw new Error('无法解析返回的图表数据，请重试');
+                }
+                
+                if (!Array.isArray(chartConfigs) || chartConfigs.length === 0) {
+                    throw new Error('返回的图表数据格式不正确');
+                }
+                
+                // 清空图表容器
+                chartsContainer.innerHTML = '';
+                
+                // 为每个图表配置生成图表
+                for (let i = 0; i < chartConfigs.length; i++) {
+                    const config = chartConfigs[i];
+                    
+                    // 创建图表容器
+                    const chartDiv = document.createElement('div');
+                    chartDiv.className = 'chart-item';
+                    chartDiv.style.cssText = 'background: white; border-radius: 12px; padding: 20px; height: auto; min-height: 450px;';
+                    
+                    // 创建图表标题
+                    const chartTitle = document.createElement('h4');
+                    chartTitle.textContent = config.title || `图表 ${i + 1}`;
+                    chartTitle.style.cssText = 'margin: 0 0 15px 0; padding: 0; height: 25px;';
+                    chartDiv.appendChild(chartTitle);
+                    
+                    // 创建canvas包装器
+                    const canvasWrapper = document.createElement('div');
+                    canvasWrapper.style.cssText = 'width: 100%; height: 350px; position: relative;';
+                    chartDiv.appendChild(canvasWrapper);
+                    
+                    // 创建canvas元素
+                    const canvas = document.createElement('canvas');
+                    canvas.id = `chart-${i}`;
+                    canvas.style.cssText = 'width: 100%; height: 100%; display: block;';
+                    canvasWrapper.appendChild(canvas);
+                    
+                    // 添加图表到容器
+                    chartsContainer.appendChild(chartDiv);
+                    
+                    // 创建图表
+                    const ctx = canvas.getContext('2d');
+                    new Chart(ctx, {
+                        type: config.type,
+                        data: config.data,
+                        options: {
+                            responsive: false,
+                            maintainAspectRatio: false,
+                            scales: config.type === 'pie' ? {} : {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            },
+                            layout: {
+                                padding: {
+                                    top: 20,
+                                    right: 20,
+                                    bottom: 60,
+                                    left: 20
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    labels: {
+                                        boxWidth: 12,
+                                        padding: 15
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: config.title || `图表 ${i + 1}`,
+                                    font: {
+                                        size: 16
+                                    },
+                                    padding: {
+                                        bottom: 20
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                // 恢复按钮状态
+                generateBtn.disabled = false;
+                generateBtn.textContent = originalText;
+                
+            } catch (error) {
+                console.error('图表生成失败:', error);
+                chartsContainer.innerHTML = `<div class="error" style="grid-column: 1 / -1;">⚠️ 图表生成失败: ${error.message || '未知错误'}</div>`;
+                generateBtn.disabled = false;
+                generateBtn.textContent = originalText;
+            }
+        }
+    </script>
+</body>
+</html>
