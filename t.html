@@ -305,11 +305,11 @@
         </div>
         
         <div class="input-group">
-            <label for="fileUpload" class="file-upload-label">📁 上传文件</label>
+            <label for="fileUpload" class="file-upload-label">📁 上传文件（支持多选）</label>
             <div class="file-upload" onclick="document.getElementById('fileUpload').click()">
-                <input type="file" id="fileUpload" accept=".pdf,.txt,.doc,.docx,.ppt,.pptx" required>
-                <div class="file-upload-hint">点击选择文件或拖拽文件到此处（支持PDF、TXT、Word等格式）</div>
-                <div id="selectedFile" class="selected-file" style="display: none;"></div>
+                <input type="file" id="fileUpload" accept=".pdf,.txt,.doc,.docx,.ppt,.pptx" multiple required>
+                <div class="file-upload-hint">点击选择文件或拖拽文件到此处（支持多文件，PDF、TXT、Word等格式）</div>
+                <div id="fileList" class="selected-file" style="display: none;"></div>
             </div>
         </div>
         
@@ -319,20 +319,59 @@
     </div>
 
     <script>
+        // 文件队列管理
+        let fileQueue = [];
+        
         // 监听文件选择
         document.getElementById('fileUpload').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const selectedFileDiv = document.getElementById('selectedFile');
-                selectedFileDiv.textContent = `已选择：${file.name}（${(file.size / 1024 / 1024).toFixed(2)} MB）`;
-                selectedFileDiv.style.display = 'block';
+            const files = Array.from(e.target.files);
+            if (files.length > 0) {
+                fileQueue = files; // 替换队列
+                updateFileList();
             }
         });
+        
+        // 更新文件列表显示
+        function updateFileList() {
+            const fileListDiv = document.getElementById('fileList');
+            
+            if (fileQueue.length === 0) {
+                fileListDiv.style.display = 'none';
+                return;
+            }
+            
+            let html = `<div style="margin-bottom: 12px;"><strong>已选择 ${fileQueue.length} 个文件：</strong></div>`;
+            
+            fileQueue.forEach((file, index) => {
+                html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; margin: 4px 0; background: #f0f4ff; border-radius: 6px;">
+                        <span style="font-size: 14px;">${file.name}（${(file.size / 1024 / 1024).toFixed(2)} MB）</span>
+                        <button onclick="removeFile(${index})" style="background: #ff4757; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">删除</button>
+                    </div>
+                `;
+            });
+            
+            fileListDiv.innerHTML = html;
+            fileListDiv.style.display = 'block';
+        }
+        
+        // 删除文件
+        function removeFile(index) {
+            fileQueue.splice(index, 1);
+            updateFileList();
+            
+            // 更新文件输入框
+            const dataTransfer = new DataTransfer();
+            fileQueue.forEach(file => dataTransfer.items.add(file));
+            document.getElementById('fileUpload').files = dataTransfer.files;
+        }
 
-        // 解析文件主函数
+        // 全局表格数据
+        let allTableData = [];
+
+        // 解析文件主函数（支持多文件队列）
         async function parseFile() {
             const apiKey = document.getElementById('apiKey').value.trim();
-            const fileInput = document.getElementById('fileUpload');
             const prompt = document.getElementById('prompt').value.trim();
             const resultArea = document.getElementById('resultArea');
             const parseBtn = document.getElementById('parseBtn');
@@ -343,7 +382,7 @@
                 return;
             }
             
-            if (!fileInput.files || fileInput.files.length === 0) {
+            if (fileQueue.length === 0) {
                 showError('请选择要解析的文件');
                 return;
             }
@@ -353,30 +392,65 @@
                 return;
             }
             
-            const file = fileInput.files[0];
-            
-            // 验证文件大小（Kimi限制100MB）
-            if (file.size > 100 * 1024 * 1024) {
-                showError('文件大小超过限制（最大100MB）');
-                return;
-            }
-            
             try {
                 // 显示加载状态
                 parseBtn.disabled = true;
-                showLoading();
                 
-                // 第一步：上传文件获取file_id（接口1）
-                const fileId = await uploadFileToKimi(apiKey, file);
-                
-                // 第二步：获取文件内容（接口2）
-                const fileContent = await getFileContentForAnalysis(apiKey, fileId);
+                // 处理文件队列
+                for (let i = 0; i < fileQueue.length; i++) {
+                    const file = fileQueue[i];
+                    
+                    // 验证文件大小（Kimi限制100MB）
+                    if (file.size > 100 * 1024 * 1024) {
+                        showError(`文件 ${file.name} 大小超过限制（最大100MB），跳过处理`);
+                        continue;
+                    }
+                    
+                    // 显示当前处理进度
+                    showLoading(`正在解析第 ${i + 1}/${fileQueue.length} 个文件：${file.name}`);
+                    
+                    try {
+                        // 第一步：上传文件获取file_id（接口1）
+                        const fileId = await uploadFileToKimi(apiKey, file);
+                        
+                        // 第二步：获取文件内容（接口2）
+                        const fileContent = await getFileContentForAnalysis(apiKey, fileId);
                 
                 // 第三步：使用文件内容进行分析（接口3）
-                const result = await analyzeFileWithContent(apiKey, fileContent, file.name, prompt);
+                        // 第三步：使用文件内容进行分析（接口3）
+                        const result = await analyzeFileWithContent(apiKey, fileContent, file.name, prompt);
+                        
+                        // 处理解析结果
+                        await processParseResult(result, file.name);
+                        
+                    } catch (error) {
+                        console.error(`文件 ${file.name} 解析失败:`, error);
+                        showError(`文件 ${file.name} 解析失败: ${error.message}`);
+                    }
+                }
                 
-                // 显示结果
-                showResult(result);
+                // 所有文件处理完成，显示最终结果
+                if (allTableData.length === 0) {
+                    resultArea.innerHTML = '<div class="error">所有文件解析失败或没有有效数据</div>';
+                    resultArea.style.display = 'block';
+                } else {
+                    // 保存到本地存储
+                    saveToLocalStorage();
+                    
+                    // 显示汇总表格
+                    showResult(allTableData);
+                    
+                    // 显示统计信息
+                    const fileCount = new Set(allTableData.map(item => item.来源文件)).size;
+                    const recordCount = allTableData.length;
+                    
+                    resultArea.innerHTML = `
+                        <div class="info">
+                            <strong>解析完成！</strong><br>
+                            共解析 ${fileCount} 个文件，生成 ${recordCount} 条记录
+                        </div>
+                    ` + resultArea.innerHTML;
+                }
                 
             } catch (error) {
                 console.error('解析失败:', error);
@@ -641,18 +715,35 @@
         function showResult(content) {
             const resultArea = document.getElementById('resultArea');
             
-            // 尝试解析JSON结果
             let jsonData;
-            try {
-                // 移除可能的代码块标记
-                const cleanedContent = content.replace(/```json|```/g, '').trim();
-                jsonData = JSON.parse(cleanedContent);
-            } catch (error) {
-                // 如果不是JSON格式，直接显示原始内容
+            
+            // 检查content的类型
+            if (typeof content === 'string') {
+                // 如果是字符串，尝试解析JSON
+                try {
+                    // 移除可能的代码块标记
+                    const cleanedContent = content.replace(/```json|```/g, '').trim();
+                    jsonData = JSON.parse(cleanedContent);
+                } catch (error) {
+                    // 如果不是JSON格式，直接显示原始内容
+                    resultArea.innerHTML = `
+                        <div class="result">
+                            <h3>📋 解析结果</h3>
+                            <div class="result-content">${content}</div>
+                        </div>
+                    `;
+                    resultArea.style.display = 'block';
+                    return;
+                }
+            } else if (Array.isArray(content)) {
+                // 如果已经是数组，直接使用
+                jsonData = content;
+            } else {
+                // 其他情况，显示错误
                 resultArea.innerHTML = `
-                    <div class="result">
-                        <h3>📋 解析结果</h3>
-                        <div class="result-content">${content}</div>
+                    <div class="error">
+                        <h3>❌ 解析结果格式错误</h3>
+                        <div>期望JSON数组或字符串，但收到：${typeof content}</div>
                     </div>
                 `;
                 resultArea.style.display = 'block';
@@ -1316,6 +1407,83 @@ ${selectedPrompt}
                 generateBtn.textContent = originalText;
             }
         }
+
+        // 处理单个文件的解析结果
+        async function processParseResult(content, fileName) {
+            try {
+                // 尝试解析JSON结果
+                const cleanedContent = content.replace(/```json|```/g, '').trim();
+                const jsonData = JSON.parse(cleanedContent);
+                
+                if (Array.isArray(jsonData) && jsonData.length > 0) {
+                    // 为每条数据添加来源文件信息
+                    const processedData = jsonData.map(item => ({
+                        ...item,
+                        来源文件: fileName,
+                        解析时间: new Date().toLocaleString()
+                    }));
+                    
+                    // 追加到全局表格数据
+                    allTableData = [...allTableData, ...processedData];
+                    
+                    console.log(`文件 ${fileName} 解析成功，新增 ${processedData.length} 条记录`);
+                }
+                
+            } catch (error) {
+                console.error('解析结果处理失败:', error);
+                throw new Error(`解析结果格式错误: ${error.message}`);
+            }
+        }
+        
+        // 保存数据到本地存储
+        function saveToLocalStorage() {
+            try {
+                const storageData = {
+                    lastUpdate: new Date().toISOString(),
+                    tableData: allTableData,
+                    fileCount: fileQueue.length
+                };
+                localStorage.setItem('parsedTableData', JSON.stringify(storageData));
+                console.log('数据已保存到本地存储');
+            } catch (error) {
+                console.error('保存到本地存储失败:', error);
+            }
+        }
+        
+        // 页面加载时从本地存储读取数据
+        function loadFromLocalStorage() {
+            try {
+                const savedData = localStorage.getItem('parsedTableData');
+                if (savedData) {
+                    const parsedData = JSON.parse(savedData);
+                    allTableData = parsedData.tableData || [];
+                    
+                    if (allTableData.length > 0) {
+                        console.log(`从本地存储加载了 ${allTableData.length} 条记录`);
+                        showResult(allTableData);
+                        
+                        const resultArea = document.getElementById('resultArea');
+                        const fileCount = new Set(allTableData.map(item => item.来源文件)).size;
+                        const recordCount = allTableData.length;
+                        
+                        resultArea.innerHTML = `
+                            <div class="info">
+                                <strong>已加载历史数据</strong><br>
+                                共 ${fileCount} 个文件，${recordCount} 条记录（上次更新：${new Date(parsedData.lastUpdate).toLocaleString()}）
+                            </div>
+                        ` + resultArea.innerHTML;
+                        resultArea.style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                console.error('从本地存储加载数据失败:', error);
+            }
+        }
+        
+        // 页面加载时自动读取历史数据
+        window.addEventListener('DOMContentLoaded', function() {
+            loadFromLocalStorage();
+        });
     </script>
 </body>
 </html>
